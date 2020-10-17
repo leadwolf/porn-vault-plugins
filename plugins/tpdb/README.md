@@ -10,7 +10,7 @@ Scrape data from tpdb
 | ------------------------ | ------- | -------- | --------------------------------------------------------------------- |
 | dry                      | Boolean | false    | Whether to commit data changes                                        |
 | studios.cacheStudiosPath | String  | true     | Where to store the downloaded studios                                 |
-| studios.cacheDays        | Number  | true     | How long to reuse downloaded studios before refreshing the whole list |
+| studios.cacheDays        | Number  | false    | How long to reuse downloaded studios before refreshing the whole list |
 
 ### Example installation with default arguments
 
