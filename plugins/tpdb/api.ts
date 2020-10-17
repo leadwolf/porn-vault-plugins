@@ -4,11 +4,11 @@ import { Context } from "../../types/plugin";
 export namespace SitesResult {
   export interface Site {
     id: number;
-    name: string;
-    short_name: string;
-    url: string;
-    logo: string;
-    favicon: string;
+    name?: string;
+    short_name?: string;
+    url?: string;
+    logo?: string | null;
+    favicon?: string;
   }
 
   export interface Links {

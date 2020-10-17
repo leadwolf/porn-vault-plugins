@@ -69,46 +69,49 @@ export default async (ctx: MyContext): Promise<StudioOutput> => {
     return {};
   }
 
-  const matchedSite = sites.find((site) => site.name === studioName);
-  if (matchedSite) {
-    $log("[TPDB]: found studio:");
-    $log({ id: matchedSite.id, url: matchedSite.url });
-
-    const aliases: string[] = [];
-
-    if (matchedSite.short_name) {
-      aliases.push(matchedSite.short_name);
-    }
-
-    let thumbnail: string | undefined;
-    if (matchedSite.logo) {
-      if (args.dry) {
-        thumbnail = `_would_create_from_${matchedSite.logo}`;
-      } else {
-        thumbnail = await $createImage(matchedSite.logo, `${studioName} logo`, true);
-      }
-    }
-
-    const result = {
-      thumbnail,
-      aliases,
-      custom: {
-        tpdb: {
-          id: matchedSite.id,
-        },
-      },
-    };
-
-    if (args.dry) {
-      $log("[TPDB]: Is 'dry' mode, would've returned:");
-      $log(result);
-      return {};
-    }
-
-    return result;
+  const matchedSite = sites.find(
+    (site) =>
+      (site.name || "").toLocaleLowerCase() === studioName.toLocaleLowerCase() ||
+      (site.short_name || "").toLocaleLowerCase() === studioName.toLocaleLowerCase()
+  );
+  if (!matchedSite) {
+    $log(`[TPDB]: Could not find studio ${studioName} in TPDB`);
+    return {};
   }
 
-  $log("[TPDB]: Could not find site in TPDB");
-  $throw("[TPDB]: Could not find site in TPDB");
-  return {};
+  $log("[TPDB]: found studio:");
+  $log({ id: matchedSite.id, url: matchedSite.url });
+
+  const aliases: string[] = [];
+
+  if (matchedSite.short_name) {
+    aliases.push(matchedSite.short_name);
+  }
+
+  let thumbnail: string | undefined;
+  if (matchedSite.logo) {
+    if (args.dry) {
+      thumbnail = `_would_create_from_${matchedSite.logo}`;
+    } else {
+      thumbnail = await $createImage(matchedSite.logo, `${studioName} logo`, true);
+    }
+  }
+
+  const result = {
+    thumbnail,
+    aliases,
+    custom: {
+      tpdb: {
+        id: matchedSite.id,
+      },
+    },
+  };
+
+  if (args.dry) {
+    $log("[TPDB]: Is 'dry' mode, would've returned:");
+    $log(result);
+    return {};
+  }
+
+  return result;
 };

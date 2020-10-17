@@ -76,7 +76,7 @@ describe("tpdb", () => {
         cleanup(sitesDownloadInput);
       });
 
-      describe("throws", () => {
+      describe("validate args", () => {
         it("when no 'studioName'", async () => {
           let errored = false;
           try {
@@ -130,14 +130,14 @@ describe("tpdb", () => {
             await plugin({
               ...baseContext,
               event,
-              studioName: "1000 Facials",
-              args: { studios: { cacheStudiosPath: "dummy" } },
+              studioName: "dummy",
+              args: { studios: { cacheStudiosPath: sitesDownloadInput } },
             });
           } catch (error) {
             expect(error.message.includes("cannot run plugin")).to.be.true;
             errored = true;
           }
-          expect(errored).to.be.true;
+          expect(errored).to.be.false;
         });
       });
 
@@ -337,9 +337,10 @@ describe("tpdb", () => {
 
         it("downloads sites, does not find studio in first page", async () => {
           let errored = false;
+          let result;
 
           try {
-            await plugin({
+            result = await plugin({
               ...baseContext,
               event,
               studioName: "21 Sextury",
@@ -353,8 +354,11 @@ describe("tpdb", () => {
           } catch (error) {
             errored = true;
           }
-          expect(errored).to.be.true;
+          expect(errored).to.be.false;
+
           expect(context.$fs.existsSync(sitesDownloadInput)).to.be.true;
+          expect(result).to.be.an("object");
+          expect(result).to.deep.equal({});
         });
 
         it("downloads sites, finds studio in second page", async () => {
