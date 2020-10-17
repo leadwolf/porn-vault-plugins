@@ -27,7 +27,6 @@ export interface FullMovieOutput extends CustomFieldsOutput {
   frontCover: string;
   backCover: string;
   spineCover: string;
-  labels: string[]; // TODO: implement in server
   studio: string;
 }
 
