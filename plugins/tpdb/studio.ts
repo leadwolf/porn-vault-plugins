@@ -21,32 +21,25 @@ interface MyContext extends StudioContext {
   };
 }
 
-const validateArgs = ({ args, $throw, studioName }: MyContext): {} => {
+const validateArgs = ({ args, $throw, studioName }: MyContext): void => {
   if (!args || typeof args !== "object") {
-    $throw(`Missing args, cannot run plugin`);
-    return {};
+    return $throw(`Missing args, cannot run plugin`);
   }
 
   if (!studioName || typeof studioName !== "string") {
-    $throw(`Expected 'studioName', cannot run plugin`);
-    return {};
+    return $throw(`Expected 'studioName', cannot run plugin`);
   }
   if (!args.studios || typeof args.studios !== "object") {
-    $throw(`Missing args, cannot run plugin`);
-    return {};
+    return $throw(`Missing arg 'studios', cannot run plugin`);
   }
 
   if (!args.studios.cacheStudiosPath || typeof args.studios.cacheStudiosPath !== "string") {
-    $throw(`Missing arg 'cacheStudiosPath', cannot run plugin`);
-    return {};
+    return $throw(`Missing arg 'studios.cacheStudiosPath', cannot run plugin`);
   }
 
   if (!args.studios.cacheDays || typeof args.studios.cacheDays !== "number") {
-    $throw(`Missing arg 'cacheStudiosPath', cannot run plugin`);
-    return {};
+    args.studios.cacheDays = 7;
   }
-
-  return {};
 };
 
 export default async (ctx: MyContext): Promise<StudioOutput> => {

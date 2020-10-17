@@ -22,7 +22,7 @@
     {
       "name": "studios.cacheDays",
       "type": "Number",
-      "required": true,
+      "required": false,
       "default": 7,
       "description": "How long to reuse downloaded studios before refreshing the whole list"
     }
