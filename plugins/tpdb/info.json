@@ -1,0 +1,23 @@
+{
+  "name": "tpdb",
+  "version": "0.1.0",
+  "authors": ["leadwolf"],
+  "description": "Scrape data from tpdb",
+  "pluginEvents": ["studioCreated", "studioCustom"],
+  "arguments": [
+    {
+      "name": "dry",
+      "type": "Boolean",
+      "required": false,
+      "default": false,
+      "description": "Whether to commit data changes"
+    },
+    {
+      "name": "cacheStudiosPath",
+      "type": "String",
+      "required": true,
+      "default": "./plugins/tpdb/cached_sites.json",
+      "description": "Where to store the downloaded studios"
+    }
+  ]
+}
