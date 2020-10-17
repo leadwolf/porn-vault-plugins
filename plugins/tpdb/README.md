@@ -6,10 +6,11 @@ Scrape data from tpdb
 
 ### Arguments
 
-| Name             | Type    | Required | Description                           |
-| ---------------- | ------- | -------- | ------------------------------------- |
-| dry              | Boolean | false    | Whether to commit data changes        |
-| cacheStudiosPath | String  | true     | Where to store the downloaded studios |
+| Name                     | Type    | Required | Description                                                           |
+| ------------------------ | ------- | -------- | --------------------------------------------------------------------- |
+| dry                      | Boolean | false    | Whether to commit data changes                                        |
+| studios.cacheStudiosPath | String  | true     | Where to store the downloaded studios                                 |
+| studios.cacheDays        | Number  | true     | How long to reuse downloaded studios before refreshing the whole list |
 
 ### Example installation with default arguments
 
@@ -23,7 +24,10 @@ Scrape data from tpdb
         "path": "./plugins/tpdb/main.js",
         "args": {
           "dry": false,
-          "cacheStudiosPath": "./plugins/tpdb/cached_sites.json"
+          "studios": {
+            "cacheStudiosPath": "./plugins/tpdb/cached_sites.json",
+            "cacheDays": 7
+          }
         }
       }
     },
@@ -49,7 +53,9 @@ plugins:
       path: ./plugins/tpdb/main.js
       args:
         dry: false
-        cacheStudiosPath: ./plugins/tpdb/cached_sites.json
+        studios:
+          cacheStudiosPath: ./plugins/tpdb/cached_sites.json
+          cacheDays: 7
   events:
     studioCreated:
       - tpdb

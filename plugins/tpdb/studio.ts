@@ -2,19 +2,26 @@ import { StudioContext, StudioOutput } from "../../types/studio";
 import { Api, SitesResult } from "./api";
 import { retrieveSiteList } from "./util";
 
-interface MyContext extends StudioContext {
-  args: {
-    dry?: boolean;
-    cacheStudiosPath?: string;
+type DeepPartial<T> = {
+  [P in keyof T]?: DeepPartial<T[P]>;
+};
+
+interface Args {
+  dry: boolean;
+  studios: {
+    cacheStudiosPath: string;
+    cacheDays: number;
   };
+}
+
+interface MyContext extends StudioContext {
+  args?: DeepPartial<Args>;
   testArgs?: {
     maxPages?: number;
   };
 }
 
-export default async (ctx: MyContext): Promise<StudioOutput> => {
-  const { args, $log, $throw, $createImage, studioName, testArgs } = ctx;
-
+const validateArgs = ({ args, $throw, studioName }: MyContext): {} => {
   if (!args || typeof args !== "object") {
     $throw(`Missing args, cannot run plugin`);
     return {};
@@ -24,11 +31,36 @@ export default async (ctx: MyContext): Promise<StudioOutput> => {
     $throw(`Expected 'studioName', cannot run plugin`);
     return {};
   }
+  if (!args.studios || typeof args.studios !== "object") {
+    $throw(`Missing args, cannot run plugin`);
+    return {};
+  }
 
-  if (!args.cacheStudiosPath || typeof args.cacheStudiosPath !== "string") {
+  if (!args.studios.cacheStudiosPath || typeof args.studios.cacheStudiosPath !== "string") {
     $throw(`Missing arg 'cacheStudiosPath', cannot run plugin`);
     return {};
   }
+
+  if (!args.studios.cacheDays || typeof args.studios.cacheDays !== "number") {
+    $throw(`Missing arg 'cacheStudiosPath', cannot run plugin`);
+    return {};
+  }
+
+  return {};
+};
+
+export default async (ctx: MyContext): Promise<StudioOutput> => {
+  const { args: initialArgs, $log, $throw, $createImage, studioName, testArgs } = ctx;
+
+  try {
+    validateArgs(ctx);
+  } catch (err) {
+    $throw(err);
+    return {};
+  }
+
+  // Can assert all properties exist, since we just validated them above
+  const args = initialArgs as Args;
 
   ctx.$log(`[TPDB]: Trying to match "${studioName}"`);
 
@@ -37,7 +69,7 @@ export default async (ctx: MyContext): Promise<StudioOutput> => {
   let sites: SitesResult.Site[];
 
   try {
-    sites = (await retrieveSiteList(ctx, api, args.cacheStudiosPath, testArgs?.maxPages)) || [];
+    sites = (await retrieveSiteList(ctx, api, args.studios, testArgs?.maxPages)) || [];
   } catch (err) {
     ctx.$log(`[TPDB]: Could not retrieve site list. ${err}`);
     ctx.$throw(`[TPDB]: Could not retrieve site list. ${err}`);

@@ -13,11 +13,18 @@
       "description": "Whether to commit data changes"
     },
     {
-      "name": "cacheStudiosPath",
+      "name": "studios.cacheStudiosPath",
       "type": "String",
       "required": true,
       "default": "./plugins/tpdb/cached_sites.json",
       "description": "Where to store the downloaded studios"
+    },
+    {
+      "name": "studios.cacheDays",
+      "type": "Number",
+      "required": true,
+      "default": 7,
+      "description": "How long to reuse downloaded studios before refreshing the whole list"
     }
   ]
 }
