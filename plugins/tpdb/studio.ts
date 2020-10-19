@@ -59,17 +59,17 @@ export default async (ctx: MyContext): Promise<StudioOutput> => {
 
   const api = new Api(ctx);
 
-  let sites: SitesResult.Site[];
+  let sites: SitesResult.Site[] | null;
 
   try {
-    sites = (await retrieveSiteList(ctx, api, args.studios, testArgs?.maxPages)) || [];
+    sites = await retrieveSiteList(ctx, api, args.studios, testArgs?.maxPages);
   } catch (err) {
     ctx.$log(`[TPDB]: Could not retrieve site list. ${err}`);
     ctx.$throw(`[TPDB]: Could not retrieve site list. ${err}`);
     return {};
   }
 
-  const matchedSite = sites.find(
+  const matchedSite = sites?.find(
     (site) =>
       (site.name || "").toLocaleLowerCase() === studioName.toLocaleLowerCase() ||
       (site.short_name || "").toLocaleLowerCase() === studioName.toLocaleLowerCase()

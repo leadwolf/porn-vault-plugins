@@ -58,7 +58,7 @@ export class Api {
     return this.ctx.$axios.get<SitesResult.RootObject>("https://api.metadataapi.net/sites", {
       params: {
         ...params,
-        perPage: 15,
+        per_page: 250,
       },
     });
   }

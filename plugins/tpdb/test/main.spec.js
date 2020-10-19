@@ -28,7 +28,7 @@ const sitesDownloadInput = context.$path.resolve(
 );
 
 const oneThousandFacialsId = 307;
-const twentyOneSexturyId = 276;
+const brazzersId = 92;
 
 function cleanup(path) {
   if (context.$fs.existsSync(path)) {
@@ -36,7 +36,7 @@ function cleanup(path) {
   }
 }
 
-describe("tpdb", () => {
+describe.only("tpdb", () => {
   it("throws if no 'args'", async () => {
     let errored = false;
     try {
@@ -343,7 +343,7 @@ describe("tpdb", () => {
             result = await plugin({
               ...baseContext,
               event,
-              studioName: "21 Sextury",
+              studioName: "Brazzers",
               args: {
                 studios: { cacheStudiosPath: sitesDownloadInput, cacheDays: 1 },
               },
@@ -369,7 +369,7 @@ describe("tpdb", () => {
             result = await plugin({
               ...baseContext,
               event,
-              studioName: "21 Sextury",
+              studioName: "Brazzers",
               args: {
                 studios: { cacheStudiosPath: sitesDownloadInput, cacheDays: 1 },
               },
@@ -382,8 +382,8 @@ describe("tpdb", () => {
           expect(context.$fs.existsSync(sitesDownloadInput)).to.be.true;
           expect(result).to.be.an("object");
           expect(result.thumbnail).to.be.a("string");
-          expect(result.aliases).to.deep.equal(["21sextury"]);
-          expect(result.custom).to.deep.equal({ tpdb: { id: twentyOneSexturyId } });
+          expect(result.aliases).to.deep.equal(["Brazzers"]);
+          expect(result.custom).to.deep.equal({ tpdb: { id: brazzersId } });
         });
       });
     });
