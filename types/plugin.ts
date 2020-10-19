@@ -37,7 +37,7 @@ export interface Context<Data = unknown> {
   // Plugin
   event: string;
   args?: unknown;
-  data: Data;
+  data: Partial<Data>;
 }
 
 export interface CustomFieldsOutput {
