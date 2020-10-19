@@ -101,9 +101,7 @@ export default async (ctx: MyContext): Promise<StudioOutput> => {
     thumbnail,
     aliases,
     custom: {
-      tpdb: {
-        id: matchedSite.id,
-      },
+      tpdb_id: matchedSite.id,
     },
   };
 

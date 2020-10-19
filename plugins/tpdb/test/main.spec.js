@@ -175,6 +175,39 @@ describe.only("tpdb", () => {
           expect(result).to.deep.equal({});
         });
 
+        it("does not find fake studio", async () => {
+          let errored = false;
+          let result;
+
+          // Set modification time to now, so the plugin uses the cache
+          const mtime = new Date();
+          context.$fs.utimesSync(sitesFirstPageInput, mtime, mtime);
+          expect(context.$fs.statSync(sitesFirstPageInput).mtime.valueOf()).to.equal(
+            mtime.valueOf()
+          );
+
+          try {
+            result = await plugin({
+              ...baseContext,
+              event,
+              studioName: "fake",
+              args: {
+                dry: true,
+                studios: { cacheStudiosPath: sitesFirstPageInput, cacheDays: 1 },
+              },
+            });
+          } catch (error) {
+            errored = true;
+          }
+          expect(errored).to.be.false;
+          // Make sure the cache was NOT updated
+          expect(context.$fs.statSync(sitesFirstPageInput).mtime.valueOf()).to.equal(
+            mtime.valueOf()
+          );
+          expect(result).to.be.an("object");
+          expect(result).to.deep.equal({});
+        });
+
         it("finds studio in existing sites file", async () => {
           let errored = false;
           let result;
@@ -206,7 +239,7 @@ describe.only("tpdb", () => {
           expect(result).to.be.an("object");
           expect(result.thumbnail).to.be.a("string");
           expect(result.aliases).to.deep.equal(["1000facials"]);
-          expect(result.custom).to.deep.equal({ tpdb: { id: oneThousandFacialsId } });
+          expect(result.custom).to.deep.equal({ tpdb_id: oneThousandFacialsId });
         });
 
         it("expired cache, downloads and finds studio", async () => {
@@ -242,7 +275,7 @@ describe.only("tpdb", () => {
           expect(result).to.be.an("object");
           expect(result.thumbnail).to.be.a("string");
           expect(result.aliases).to.deep.equal(["1000facials"]);
-          expect(result.custom).to.deep.equal({ tpdb: { id: oneThousandFacialsId } });
+          expect(result.custom).to.deep.equal({ tpdb_id: oneThousandFacialsId });
         });
 
         it("invalid cache file, downloads and finds studio", async () => {
@@ -276,7 +309,7 @@ describe.only("tpdb", () => {
           expect(result).to.be.an("object");
           expect(result.thumbnail).to.be.a("string");
           expect(result.aliases).to.deep.equal(["1000facials"]);
-          expect(result.custom).to.deep.equal({ tpdb: { id: oneThousandFacialsId } });
+          expect(result.custom).to.deep.equal({ tpdb_id: oneThousandFacialsId });
           cleanup(sitesInvalidInput);
         });
       });
@@ -332,7 +365,30 @@ describe.only("tpdb", () => {
           expect(result).to.be.an("object");
           expect(result.thumbnail).to.be.a("string");
           expect(result.aliases).to.deep.equal(["1000facials"]);
-          expect(result.custom).to.deep.equal({ tpdb: { id: oneThousandFacialsId } });
+          expect(result.custom).to.deep.equal({ tpdb_id: oneThousandFacialsId });
+        });
+
+        it("downloads sites, does not find fake studio", async () => {
+          let errored = false;
+          let result;
+
+          try {
+            result = await plugin({
+              ...baseContext,
+              event,
+              studioName: "fake",
+              args: {
+                studios: { cacheStudiosPath: sitesDownloadInput, cacheDays: 1 },
+              },
+            });
+          } catch (error) {
+            errored = true;
+          }
+          expect(errored).to.be.false;
+
+          expect(context.$fs.existsSync(sitesDownloadInput)).to.be.true;
+          expect(result).to.be.an("object");
+          expect(result).to.deep.equal({});
         });
 
         it("downloads sites, does not find studio in first page", async () => {
@@ -383,7 +439,7 @@ describe.only("tpdb", () => {
           expect(result).to.be.an("object");
           expect(result.thumbnail).to.be.a("string");
           expect(result.aliases).to.deep.equal(["Brazzers"]);
-          expect(result.custom).to.deep.equal({ tpdb: { id: brazzersId } });
+          expect(result.custom).to.deep.equal({ tpdb_id: brazzersId });
         });
       });
     });
