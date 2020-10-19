@@ -40,7 +40,10 @@ Filter labels returned by other plugins
       "sceneCustom": [
         "label_filter"
       ],
-      "movieCreated": [
+      "studioCreated": [
+        "label_filter"
+      ],
+      "studioCustom": [
         "label_filter"
       ]
     }
@@ -68,7 +71,9 @@ plugins:
       - label_filter
     sceneCustom:
       - label_filter
-    movieCreated:
+    studioCreated:
+      - label_filter
+    studioCustom:
       - label_filter
 
 ---
