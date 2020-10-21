@@ -1,7 +1,9 @@
 {
   "include": [
     "plugins/**/*.ts",
-    "plugins/**/*.js"
+    "plugins/**/*.js",
+    "unstable/**/*.ts",
+    "unstable/**/*.js"
   ],
   "exclude": [
     "node_modules",
