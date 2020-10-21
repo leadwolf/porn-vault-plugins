@@ -19,7 +19,7 @@ Scrape data from adultempire
   "plugins": {
     "register": {
       "adultempire": {
-        "path": "./plugins/adultempire/main.js",
+        "path": "./plugins/adultempire/main.ts",
         "args": {
           "dry": false
         }
@@ -44,7 +44,7 @@ Scrape data from adultempire
 plugins:
   register:
     adultempire:
-      path: ./plugins/adultempire/main.js
+      path: ./plugins/adultempire/main.ts
       args:
         dry: false
   events:

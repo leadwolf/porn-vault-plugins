@@ -22,7 +22,7 @@ Find actor images based on local files. GIF support.
   "plugins": {
     "register": {
       "profile_pics": {
-        "path": "./plugins/profile_pics/main.js",
+        "path": "./plugins/profile_pics/main.ts",
         "args": {
           "path_thumb": null,
           "path_alt": null,
@@ -47,7 +47,7 @@ Find actor images based on local files. GIF support.
 plugins:
   register:
     profile_pics:
-      path: ./plugins/profile_pics/main.js
+      path: ./plugins/profile_pics/main.ts
       args:
         path_thumb: null
         path_alt: null

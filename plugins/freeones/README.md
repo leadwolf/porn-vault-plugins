@@ -23,7 +23,7 @@ Scrape data from freeones.xxx. Custom fields can only be named as follows (not c
   "plugins": {
     "register": {
       "freeones": {
-        "path": "./plugins/freeones/main.js",
+        "path": "./plugins/freeones/main.ts",
         "args": {
           "dry": false,
           "whitelist": [],
@@ -52,7 +52,7 @@ Scrape data from freeones.xxx. Custom fields can only be named as follows (not c
 plugins:
   register:
     freeones:
-      path: ./plugins/freeones/main.js
+      path: ./plugins/freeones/main.ts
       args:
         dry: false
         whitelist: []

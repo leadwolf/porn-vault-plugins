@@ -77,7 +77,7 @@ function generatePluginExample(pluginInfo: PluginInfo) {
     plugins: {
       register: {
         [pluginInfo.name]: {
-          path: `./plugins/${pluginInfo.name}/main.js`,
+          path: `./plugins/${pluginInfo.name}/main.ts`,
           args: defaultArgs,
         },
       },

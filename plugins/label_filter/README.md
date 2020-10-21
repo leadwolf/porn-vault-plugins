@@ -20,7 +20,7 @@ Filter labels returned by other plugins
   "plugins": {
     "register": {
       "label_filter": {
-        "path": "./plugins/label_filter/main.js",
+        "path": "./plugins/label_filter/main.ts",
         "args": {
           "whitelist": [],
           "blacklist": []
@@ -58,7 +58,7 @@ Filter labels returned by other plugins
 plugins:
   register:
     label_filter:
-      path: ./plugins/label_filter/main.js
+      path: ./plugins/label_filter/main.ts
       args:
         whitelist: []
         blacklist: []
