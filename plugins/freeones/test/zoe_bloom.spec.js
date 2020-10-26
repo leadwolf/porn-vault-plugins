@@ -47,7 +47,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Zoe Bloom' but without measurements", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await search({
       dry: false,
       blacklist: ["measurements"],

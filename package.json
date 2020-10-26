@@ -15,6 +15,7 @@
     "@types/fluent-ffmpeg": "^2.1.16",
     "@types/inquirer": "^7.3.1",
     "@types/yaml": "^1.9.7",
+    "boxen": "^4.2.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "eslint": "^7.11.0",
@@ -34,7 +35,8 @@
     "prettier": "^2.1.2",
     "ts-node": "^9.0.0",
     "typescript": "^3.8.3",
-    "yaml": "^1.10.0"
+    "yaml": "^1.10.0",
+    "zod": "^1.11.9"
   },
   "scripts": {
     "doc": "cd md_gen && npm start",
@@ -55,5 +57,8 @@
   "bugs": {
     "url": "https://github.com/boi123212321/porn-vault-plugins/issues"
   },
-  "homepage": "https://github.com/boi123212321/porn-vault-plugins#readme"
+  "homepage": "https://github.com/boi123212321/porn-vault-plugins#readme",
+  "nyc": {
+    "exclude": "**/*.spec.js"
+  }
 }

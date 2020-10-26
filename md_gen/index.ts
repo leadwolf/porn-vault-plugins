@@ -105,7 +105,7 @@ const generatePluginDocs = () => {
     const exampleJSON = JSON.stringify(example, null, 2);
     const exampleYAML = YAML.stringify(example, { simpleKeys: true });
 
-    const rendered = Handlebars.compile(pluginTemplate)({
+    const rendered = Handlebars.compile(pluginTemplate, { noEscape: true })({
       name: pluginInfo.name,
       version: pluginInfo.version,
       description: pluginInfo.description,

@@ -1,0 +1,19 @@
+{
+  "name": "resolution",
+  "version": "0.0.1",
+  "authors": ["boi123212321"],
+  "description": "Add resolution labels to a scene",
+  "pluginEvents": [
+    "sceneCreated",
+    "sceneCustom"
+  ],
+  "arguments": [
+    {
+      "name": "resolutions",
+      "type": "number[]",
+      "required": false,
+      "default": [],
+      "description": "Resolutions to match against the scene's path, when the scene's metadata has not yet been extracted"
+    }
+  ]
+}

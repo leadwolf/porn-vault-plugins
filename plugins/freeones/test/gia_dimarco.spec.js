@@ -12,7 +12,7 @@ function search(args = {}) {
 
 describe("freeones", () => {
   it("Search 'Gia DiMarco'", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await search({
       dry: false,
       blacklist: [],
@@ -50,7 +50,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Gia DiMarco' without measurements", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await search({
       dry: false,
       blacklist: ["measurements"],

@@ -29,7 +29,7 @@ async function search(
   { $axios }: { $axios: Context["$axios"] },
   query: string
 ): Promise<string> {
-  const url = `https://www.freeones.xxx/partial/subject`;
+  const url = `https://www.freeones.com/partial/subject`;
   return (
     await $axios.get(url, {
       params: {
@@ -123,7 +123,7 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
 
   let html: string | undefined;
   try {
-    html = (await $axios.get(`https://freeones.xxx${href}/profile`)).data;
+    html = (await $axios.get(`https://freeones.com${href}/profile`)).data;
   } catch (error) {
     $throw(error.message);
   }

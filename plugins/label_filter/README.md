@@ -6,10 +6,10 @@ Filter labels returned by other plugins
 
 ### Arguments
 
-| Name      | Type          | Required | Description       |
-| --------- | ------------- | -------- | ----------------- |
-| whitelist | Array&lt;String&gt; | false    | Labels to include |
-| blacklist | Array&lt;String&gt; | false    | Labels to exclude |
+| Name      | Type     | Required | Description       |
+| --------- | -------- | -------- | ----------------- |
+| whitelist | String[] | false    | Labels to include |
+| blacklist | String[] | false    | Labels to exclude |
 
 ### Example installation with default arguments
 

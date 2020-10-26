@@ -20,7 +20,7 @@ function searchWhitneyKindaWrongThough(args = {}) {
 
 describe("freeones", () => {
   it("Search 'Whitney Wright'", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney();
     expect(result.custom).to.deep.equal({
       "hair color": "Brown",
@@ -52,7 +52,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright' with whitelist", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       whitelist: ["nationality", "hair color"],
     });
@@ -65,7 +65,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', dry", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       dry: true,
     });
@@ -73,7 +73,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright, with avatar as thumbnail'", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       useAvatarAsThumbnail: true,
     });
@@ -108,7 +108,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wri'", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitneyKindaWrongThough();
     expect(result.custom).to.deep.equal({
       "hair color": "Brown",
@@ -141,7 +141,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without hair color", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["hair color"],
     });
@@ -174,7 +174,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without eye color", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["eye color"],
     });
@@ -207,7 +207,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without ethnicity", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["ethnicity"],
     });
@@ -240,7 +240,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without height", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["height"],
     });
@@ -274,7 +274,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without weight", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["weight"],
     });
@@ -307,7 +307,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without avatar", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["avatar"],
     });
@@ -341,7 +341,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without labels", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["labels"],
     });
@@ -370,7 +370,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without nationality", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["nationality"],
     });
@@ -405,7 +405,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but imperial", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       useImperial: true,
     });
@@ -440,7 +440,7 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without measurements", async () => {
-    console.log("Fetching freeones.xxx...");
+    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["measurements"],
     });

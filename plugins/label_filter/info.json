@@ -14,14 +14,14 @@
   "arguments": [
     {
       "name": "whitelist",
-      "type": "Array<String>",
+      "type": "String[]",
       "required": false,
       "default": [],
       "description": "Labels to include"
     },
     {
       "name": "blacklist",
-      "type": "Array<String>",
+      "type": "String[]",
       "required": false,
       "default": [],
       "description": "Labels to exclude"

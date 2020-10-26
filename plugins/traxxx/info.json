@@ -1,0 +1,86 @@
+{
+  "name": "traxxx",
+  "version": "0.1.0",
+  "authors": ["leadwolf"],
+  "description": "Scrape data from traxxx",
+  "pluginEvents": ["studioCreated", "studioCustom"],
+  "arguments": [
+    {
+      "name": "dry",
+      "type": "Boolean",
+      "required": false,
+      "default": false,
+      "description": "Whether to commit data changes"
+    },
+    {
+      "name": "studios",
+      "type": "Object",
+      "required": false,
+      "default": {},
+      "description": "Configuration for studio events"
+    },
+    {
+      "name": "studios.channelPriority",
+      "type": "Boolean",
+      "required": false,
+      "default": true,
+      "description": "When the studio type is unknown, and the name corresponds to both a channel & a network, whether to prefer the channel or the network"
+    },
+    {
+      "name": "studios.uniqueNames",
+      "type": "Boolean",
+      "required": false,
+      "default": true,
+      "description": "When the studio name corresponds to both a channel & a network, whether to append suffixes to the name to avoid conflicts. The suffixes obviously cannot be the same"
+    },
+    {
+      "name": "studios.channelSuffix",
+      "type": "String",
+      "required": false,
+      "default": " (Channel)",
+      "description": "When `studios.uniqueNames` is active returning a **channel** name that also corresponds to a network, will be appended to the name. WARNING: spaces between the name & suffix will not be automatically added"
+    },
+    {
+      "name": "studios.networkSuffix",
+      "type": "String",
+      "required": false,
+      "default": " (Network)",
+      "description": "When `studios.uniqueNames` is active and returning a **network** name that also corresponds to a channel, will be appended to the name. WARNING: spaces between the name & suffix will not be automatically added"
+    },
+    {
+      "name": "studios.mergeAliases",
+      "type": "Boolean",
+      "required": false,
+      "default": true,
+      "description": "When the previous plugin returned aliases, if our plugins aliases should be merged with them or override them"
+    },
+    {
+      "name": "studios.whitelist",
+      "type": "String[]",
+      "required": false,
+      "default": [],
+      "description": "Array of data fields to pick. When non empty, only the fields listed will be returned. Possible values: [`'name', 'description', 'thumbnail', 'aliases', 'parent'`]."
+    },
+    {
+      "name": "studios.blacklist",
+      "type": "String[]",
+      "required": false,
+      "default": [],
+      "description": "Array of data fields to omit. Used **only** when `whitelist` is empty. When non empty, only the fields **not** listed will be returned. (for values see `whitelist`)"
+    },
+    {
+      "name": "studios.whitelistOverride",
+      "type": "String[]",
+      "required": false,
+      "default": [],
+      "description": "Array of data fields to pick, when values already exist from a piped plugin. Acts exactly the same as `whitelist`, but used **only** when the field has been returned by a previous plugin. (**WARNING**: not the same thing as existing values of the scene) (for values see `whitelist`)"
+    },
+    {
+      "name": "studios.blacklistOverride",
+      "type": "String[]",
+      "required": false,
+      "default": [],
+      "description": "Array of data fields to omit, when values already exist from a a piped plugin. Acts exactly the same as `blacklist`, but used **only** when the field has been returned by a previous plugin.  (**WARNING**: not the same thing as existing values of the scene) (for values see `whitelist`)"
+    }
+  ]
+}
