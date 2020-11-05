@@ -13,7 +13,7 @@ export const hasProp = (target: unknown, prop: string): boolean => {
 const DEFAULT_STUDIO_SETTINGS: StudioSettings = {
   channelPriority: true,
   uniqueNames: true,
-  channelSuffix: " (Channel)",
+  channelSuffix: "",
   networkSuffix: " (Network)",
   whitelist: [],
   blacklist: [],

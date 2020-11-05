@@ -15,6 +15,10 @@ export class ChannelExtractor {
   channel?: EntityResult.Entity;
   network?: EntityResult.Entity;
   entityPreference: EntityPreference;
+  api: Api;
+  preferredEntity:
+    | { type: "channel" | "network"; entity: EntityResult.Entity | undefined }
+    | undefined;
 
   /**
    * @param ctx - plugin context
@@ -37,46 +41,58 @@ export class ChannelExtractor {
     }
   ) {
     this.ctx = ctx;
+    this.api = new Api(ctx);
     this.channel = channel;
     this.network = network;
     this.entityPreference = entityPreference;
+    this.preferredEntity = this.getPreferredEntity();
   }
 
-  getPreferredEntity(): EntityResult.Entity | undefined {
-    if (this.entityPreference === "channel") {
-      return this.channel;
+  private getPreferredEntity():
+    | {
+        type: "channel" | "network";
+        entity: EntityResult.Entity | undefined;
+      }
+    | undefined {
+    const bothExist = !!this.channel && !!this.network;
+
+    if (
+      this.entityPreference === "channel" ||
+      (this.entityPreference === "none" &&
+        (!this.network || (bothExist && this.ctx.args.studios.channelPriority)))
+    ) {
+      return { type: "channel", entity: this.channel };
     }
-    if (this.entityPreference === "network") {
-      return this.network;
-    }
-    if (this.channel && this.network) {
-      return this.ctx.args.studios.channelPriority ? this.channel : this.network;
+    if (
+      this.entityPreference === "network" ||
+      (this.entityPreference === "none" &&
+        (!this.channel || (bothExist && !this.ctx.args.studios.channelPriority)))
+    ) {
+      return { type: "network", entity: this.network };
     }
 
-    return this.channel || this.network;
+    return undefined;
   }
 
   private _getName(): Partial<{ name: string }> {
-    const baseName = this.getPreferredEntity()?.name;
+    const baseName = this.preferredEntity?.entity?.name;
     if (!baseName) {
       return {};
     }
 
     const ignoreNameConflicts =
-      this.channel?.name !== this.network?.name || !this.ctx.args.studios.uniqueNames;
+      this.channel?.name !== this.network?.name ||
+      (!this.ctx.args.studios.uniqueNames && this.entityPreference === "none");
+    // Only use 'uniqueNames' to ignore, when the studio name does not already have a suffix
     if (ignoreNameConflicts) {
       return { name: baseName };
     }
 
     let suffix: string = "";
-    if (this.entityPreference === "channel") {
+    if (this.preferredEntity?.type === "channel") {
       suffix = this.ctx.args.studios.channelSuffix;
-    } else if (this.entityPreference === "network") {
+    } else if (this.preferredEntity?.type === "network") {
       suffix = this.ctx.args.studios.networkSuffix;
-    } else if (this.channel && this.network) {
-      suffix = this.ctx.args.studios.channelPriority
-        ? this.ctx.args.studios.channelSuffix
-        : this.ctx.args.studios.networkSuffix;
     }
 
     return { name: `${baseName}${suffix}` };
@@ -95,7 +111,7 @@ export class ChannelExtractor {
       return {};
     }
 
-    const description = this.getPreferredEntity()?.description;
+    const description = this.preferredEntity?.entity?.description;
     if (!description) {
       return {};
     }
@@ -108,7 +124,7 @@ export class ChannelExtractor {
       return {};
     }
 
-    const entity = this.getPreferredEntity();
+    const entity = this.preferredEntity?.entity;
     if (!entity) {
       return {};
     }
@@ -137,7 +153,7 @@ export class ChannelExtractor {
       return {};
     }
 
-    const ourAliases = this.getPreferredEntity()?.aliases || [];
+    const ourAliases = this.preferredEntity?.entity?.aliases || [];
     if (!ourAliases.length) {
       return {};
     }
@@ -154,21 +170,45 @@ export class ChannelExtractor {
     };
   }
 
-  getParent(): Partial<{ parent: string }> {
+  async getParent(): Promise<Partial<{ parent: string }>> {
     if (suppressProp(this.ctx, "parent")) {
       return {};
     }
 
-    const parentName = this.getPreferredEntity()?.parent?.name;
+    const parentName = this.preferredEntity?.entity?.parent?.name;
     if (!parentName) {
       return {};
     }
 
-    if (this.getPreferredEntity()?.name === parentName) {
+    // If we already know there is a conflict, we can handle it right away
+    if (this.preferredEntity?.entity?.name === parentName) {
       if (this.ctx.args.studios.uniqueNames) {
         return { parent: `${parentName}${this.ctx.args.studios.networkSuffix}` };
       }
-      this.ctx.$log(`[TRAXXX] MSG: Cannot return parent name, would conflict with current name`);
+      this.ctx.$log(`[TRAXXX] WARN: Cannot return parent name, would conflict with current name`);
+      return {};
+    }
+
+    // Otherwise, we have to check if the parent has a potential name conflict
+    const parentSlug = this.preferredEntity?.entity?.parent?.slug;
+    if (!parentSlug) {
+      this.ctx.$log(
+        `[TRAXXX] WARN: Parent did not have slug, cannot check for name conflict, will not return parent'`
+      );
+      return {};
+    }
+
+    const { channel: parentAsChannel, network: parentAsNetwork } = await this.api.getAllEntities(
+      parentSlug
+    );
+
+    if (parentAsChannel?.name === parentAsNetwork?.name) {
+      if (this.ctx.args.studios.uniqueNames) {
+        return { parent: `${parentName}${this.ctx.args.studios.networkSuffix}` };
+      }
+      this.ctx.$log(
+        `[TRAXXX] WARN: Cannot return parent name, would conflict other parent's other type'`
+      );
       return {};
     }
 
@@ -177,9 +217,9 @@ export class ChannelExtractor {
 
   getCustom(): Partial<{ "Traxxx Id": number; "Traxxx Type": string; Homepage: string }> {
     return {
-      ["Traxxx Id"]: this.getPreferredEntity()?.id,
-      ["Traxxx Type"]: this.getPreferredEntity()?.type,
-      Homepage: this.getPreferredEntity()?.url,
+      ["Traxxx Id"]: this.preferredEntity?.entity?.id,
+      ["Traxxx Type"]: this.preferredEntity?.entity?.type,
+      Homepage: this.preferredEntity?.entity?.url,
     };
   }
 }
@@ -212,32 +252,7 @@ export default async (initialContext: MyStudioContext): Promise<StudioOutput> =>
       ctx.$log(`[TRAXXX] MSG: Identified as ${entityPreference} from current name`);
     }
 
-    const searchPromises: Promise<EntityResult.Entity | undefined>[] = [];
-
-    // We still need to search for both channels & networks, even if
-    // we know the type, so that we can tell if there would be name conflicts
-    searchPromises.push(
-      api
-        .getChannel(slugifiedName)
-        .then((res) => res.data.entity)
-        .catch((err) => {
-          $log(`[TRAXXX] WARN: ${err.message}`);
-          $log(`[TRAXXX] WARN: Could not find/fetch channel "${studioName}"`);
-          return undefined;
-        })
-    );
-    searchPromises.push(
-      api
-        .getNetwork(slugifiedName)
-        .then((res) => res.data.entity)
-        .catch((err) => {
-          $log(`[TRAXXX] WARN: ${err.message}`);
-          $log(`[TRAXXX] WARN: Could not find/fetch network "${studioName}"`);
-          return undefined;
-        })
-    );
-
-    const [channel, network] = await Promise.all(searchPromises);
+    const { channel, network } = await api.getAllEntities(slugifiedName);
 
     if (!channel && !network) {
       $log(`[TRAXXX] WARN: Could not find channel or network "${studioName}" in TRAXXX`);
@@ -255,7 +270,7 @@ export default async (initialContext: MyStudioContext): Promise<StudioOutput> =>
       ...channelExtractor.getDescription(),
       ...(await channelExtractor.getThumbnail()),
       ...channelExtractor.getAliases(),
-      ...channelExtractor.getParent(),
+      ...(await channelExtractor.getParent()),
       custom: channelExtractor.getCustom(),
     };
 

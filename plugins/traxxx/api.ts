@@ -1,4 +1,4 @@
-import { AxiosResponse, AxiosInstance } from "axios";
+import { AxiosResponse, AxiosInstance, AxiosError } from "axios";
 import { Context } from "../../types/plugin";
 
 export namespace EntityResult {
@@ -49,6 +49,56 @@ export class Api {
    */
   public async getNetwork(idOrSlug: string | number): Promise<AxiosResponse<EntityResult.Result>> {
     return this.axios.get<EntityResult.Result>(`/networks/${idOrSlug}`);
+  }
+
+  /**
+   * Gets the channel and/or network for the slug
+   *
+   * @param idOrSlug - the id or slug of the channel/network
+   */
+  public async getAllEntities(
+    idOrSlug: string | number
+  ): Promise<{
+    channel: EntityResult.Entity | undefined;
+    network: EntityResult.Entity | undefined;
+  }> {
+    const searchPromises: Promise<EntityResult.Entity | undefined>[] = [];
+
+    // We still need to search for both channels & networks, even if
+    // we know the type, so that we can tell if there would be name conflicts
+    searchPromises.push(
+      this.getChannel(idOrSlug)
+        .then((res) => res.data.entity)
+        .catch((err) => {
+          const _err = err as AxiosError;
+          if (_err.response?.status === 404) {
+            this.ctx.$log(`[TRAXXX] MSG: "${idOrSlug}" does not exist as a channel`);
+          } else {
+            this.ctx.$throw(err);
+          }
+          return undefined;
+        })
+    );
+    searchPromises.push(
+      this.getNetwork(idOrSlug)
+        .then((res) => res.data.entity)
+        .catch((err) => {
+          const _err = err as AxiosError;
+          if (_err.response?.status === 404) {
+            this.ctx.$log(`[TRAXXX] MSG: "${idOrSlug}" does not exist as a network`);
+          } else {
+            this.ctx.$throw(err);
+          }
+          return undefined;
+        })
+    );
+
+    const [channel, network] = await Promise.all(searchPromises);
+
+    return {
+      channel,
+      network,
+    };
   }
 }
 
