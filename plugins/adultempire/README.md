@@ -45,7 +45,18 @@ Scrape data from adultempire
 
 ```yaml
 ---
-{ { { exampleYAML } } }
+plugins:
+  register:
+    adultempire:
+      path: ./plugins/adultempire.js
+      args:
+        dry: false
+  events:
+    movieCreated:
+      - adultempire
+    actorCreated:
+      - adultempire
+
 ---
 
 ```
