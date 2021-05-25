@@ -1,10 +1,11 @@
-const context = require("../../../context");
 const plugin = require("../main");
 const { expect } = require("chai");
+const { createPluginRunner } = require("../../../context");
+
+const runPlugin = createPluginRunner("freeones", plugin);
 
 function search(args = {}) {
-  return plugin({
-    ...context,
+  return runPlugin({
     actorName: "Zoe Bloom",
     args,
   });
@@ -32,8 +33,12 @@ describe("freeones", () => {
       "cup size": "A",
       "bra size": "32A",
       "bust size": 32,
+      started: 2018,
+
       gender: "Female",
       sex: "Female",
+      piercings: "Left Nostril",
+      tattoos: "Yes",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -47,7 +52,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Zoe Bloom' but without measurements", async () => {
-    console.log("Fetching freeones.com...");
     const result = await search({
       dry: false,
       blacklist: ["measurements"],
@@ -62,8 +66,11 @@ describe("freeones", () => {
       weight: 50,
       birthplace: "Pittsburgh, PA",
       zodiac: "Aries",
+      started: 2018,
       gender: "Female",
       sex: "Female",
+      piercings: "Left Nostril",
+      tattoos: "Yes",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");

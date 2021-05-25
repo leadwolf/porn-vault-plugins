@@ -1,8 +1,17 @@
-## label_filter 0.0.1
+## label_filter 0.0.2
 
 by boi123212321
 
 Filter labels returned by other plugins
+
+### Download links
+Each download link is for the latest version of the plugin, for the indicated porn-vault server version.  
+Make sure you are reading the documentation of the plugin, for the correct porn-vault server version.  
+| Server version                                                                                                | Plugin documentation                                                                                         |
+| ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| [Download link for: stable](https://raw.githubusercontent.com/porn-vault/plugins/master/dist/label_filter.js) | [documentation](https://github.com/porn-vault/porn-vault-plugins/blob/master/plugins/label_filter/README.md) |
+| [Download link for: 0.27](https://raw.githubusercontent.com/porn-vault/plugins/0.27/dist/label_filter.js)     | [documentation](https://github.com/porn-vault/porn-vault-plugins/blob/0.27/plugins/label_filter/README.md)   |
+
 
 ### Arguments
 
@@ -14,13 +23,14 @@ Filter labels returned by other plugins
 ### Example installation with default arguments
 
 `config.json`
+
 ```json
 ---
 {
   "plugins": {
     "register": {
       "label_filter": {
-        "path": "./plugins/label_filter/main.ts",
+        "path": "./plugins/label_filter.js",
         "args": {
           "whitelist": [],
           "blacklist": []
@@ -53,12 +63,13 @@ Filter labels returned by other plugins
 ```
 
 `config.yaml`
+
 ```yaml
 ---
 plugins:
   register:
     label_filter:
-      path: ./plugins/label_filter/main.ts
+      path: ./plugins/label_filter.js
       args:
         whitelist: []
         blacklist: []
@@ -77,4 +88,5 @@ plugins:
       - label_filter
 
 ---
+
 ```

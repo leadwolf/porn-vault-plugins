@@ -1,8 +1,8 @@
 {
   "name": "freeones",
-  "version": "0.8.1",
-  "authors": ["boi123212321", "john4valor", "pizzajohnny"],
-  "description": "Scrape data from freeones.com. Custom fields can only be named as follows (not case sensitive): Hair Color, Eye Color, Ethnicity, Height, Weight, Birthplace, Zodiac, Measurements, Chest Size, Waist Size, Hip Size, Cup Size, Bra Size, Bust Size",
+  "version": "0.11.0",
+  "authors": ["boi123212321", "john4valor", "pizzajohnny", "leadwolf"],
+  "description": "Scrape actress data from freeones.com",
   "pluginEvents": ["actorCreated", "actorCustom"],
   "arguments": [
     {
@@ -17,7 +17,7 @@
       "type": "String[]",
       "required": false,
       "default": [],
-      "description": "Array of data fields to pick (possible values: 'nationality', 'zodiac', 'aliases', 'height', 'weight', 'avatar', 'bornOn', 'labels', 'hair color', 'eye color', 'ethnicity', 'birthplace', 'measurements')"
+      "description": "Array of data fields to pick (possible values: 'nationality', 'zodiac', 'aliases', 'height', 'weight', 'avatar', 'bornOn', 'labels', 'hair color', 'eye color', 'ethnicity', 'birthplace', 'measurements', 'tattoos', 'piercings', 'career')"
     },
     {
       "name": "blacklist",
@@ -25,6 +25,13 @@
       "required": false,
       "default": [],
       "description": "Array of data fields to omit (for values see whitelist)"
+    },
+    {
+      "name": "searchResultsSort",
+      "type": "String",
+      "required": false,
+      "default": "relevance",
+      "description": "Specify the search result sort order key to use. Advanced setting: use only if you know what you are doing. Possible values are 'relevance', 'rank.currentRank', 'followerCount', 'profileCompleted' or 'views'"
     },
     {
       "name": "useImperial",
@@ -39,6 +46,20 @@
       "required": false,
       "default": false,
       "description": "Use the discovered Actor Avatar as the Actor Thumbnail image"
+    },
+    {
+      "name": "piercingsType",
+      "type": "'string' | 'array'",
+      "required": false,
+      "default": "string",
+      "description": "How to return the piercings. Use 'array' if your custom field is a select or multi select"
+    },
+    {
+      "name": "tattoosType",
+      "type": "'string' | 'array'",
+      "required": false,
+      "default": "string",
+      "description": "How to return the tattoos. Use 'array' if your custom field is a select or multi select"
     }
   ]
 }

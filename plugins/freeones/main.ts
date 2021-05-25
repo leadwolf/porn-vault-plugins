@@ -7,7 +7,10 @@ interface MyContext extends ActorContext {
     blacklist?: string[];
     dry?: boolean;
     useImperial?: boolean;
+    searchResultsSort?: "string";
     useAvatarAsThumbnail?: boolean;
+    piercingsType?: "string" | "array";
+    tattoosType?: "string" | "array";
   };
 }
 
@@ -27,20 +30,22 @@ function kgToLbs(kg: number): number {
 
 async function search(
   { $axios }: { $axios: Context["$axios"] },
-  query: string
+  query: string,
+  sort: string
 ): Promise<string> {
   const url = `https://www.freeones.com/partial/subject`;
   return (
     await $axios.get(url, {
       params: {
         q: query,
+        s: sort,
       },
     })
   ).data;
 }
 
 async function getFirstSearchResult(ctx: MyContext, query: string): Promise<cheerio.Cheerio> {
-  const searchHtml = await search(ctx, query);
+  const searchHtml = await search(ctx, query, ctx.args.searchResultsSort || "relevance");
   const $ = ctx.$cheerio.load(searchHtml);
   const el = $(".grid-item.teaser-subject>a");
   return el;
@@ -52,7 +57,7 @@ class Measurements {
   waist?: number;
   hip?: number;
 
-  static fromString(str) {
+  static fromString(str): Measurements | null {
     const [bra, waist, hip] = str.split("-");
     if (bra && waist && hip) {
       const measurements = new Measurements();
@@ -75,68 +80,100 @@ class Measurements {
 }
 
 module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
-  const { $createImage, args, $axios, $moment, $cheerio, $throw, $log, actorName } = ctx;
-  if (!actorName) $throw("Uh oh. You shouldn't use the plugin for this type of event");
+  const {
+    $createImage,
+    args,
+    $axios,
+    $moment,
+    $cheerio,
+    $throw,
+    $logger,
+    $formatMessage,
+    actorName,
+  } = ctx;
+  if (!actorName) {
+    $throw("Uh oh. You shouldn't use the plugin for this type of event");
+  }
 
-  $log(`Scraping freeones date for ${actorName}, dry mode: ${args.dry || false}...`);
+  $logger.info(`Scraping freeones for ${actorName}, dry mode: ${args.dry || false}...`);
 
   const blacklist = (args.blacklist || []).map(lowercase);
-  if (!args.blacklist) $log("No blacklist defined, returning everything...");
-  if (blacklist.length) $log(`Blacklist defined, will ignore: ${blacklist.join(", ")}`);
+  if (!args.blacklist) {
+    $logger.verbose("No blacklist defined, returning everything...");
+  }
+  if (blacklist.length) {
+    $logger.verbose(`Blacklist defined, will ignore: ${blacklist.join(", ")}`);
+  }
 
   const whitelist = (args.whitelist || []).map(lowercase);
-  if (whitelist.length) $log(`Whitelist defined, will only return: ${whitelist.join(", ")}...`);
+  if (whitelist.length) {
+    $logger.verbose(`Whitelist defined, will only return: ${whitelist.join(", ")}...`);
+  }
 
-  function isBlacklisted(prop) {
+  function isBlacklisted(prop): boolean {
     if (whitelist.length) {
       return !whitelist.includes(lowercase(prop));
     }
     return blacklist.includes(lowercase(prop));
   }
 
+  const searchResultsSort = args.searchResultsSort;
+  if (!searchResultsSort) {
+    $logger.verbose("searchResultsSort preference not set. Using default 'relevance' value...");
+  } else {
+    $logger.verbose(`Search results will be ordered by key: ${searchResultsSort}.`);
+  }
+
   // Check imperial unit preference
   const useImperial = args.useImperial;
   if (!useImperial) {
-    $log("Imperial preference not set. Using metric values...");
+    $logger.verbose("Imperial preference not set. Using metric values...");
   } else {
-    $log("Imperial preference indicated. Using imperial values...");
+    $logger.verbose("Imperial preference indicated. Using imperial values...");
   }
 
   // Check Use Avatar as Thumbnail preference
   const useAvatarAsThumbnail = args.useAvatarAsThumbnail;
   if (!useAvatarAsThumbnail) {
-    $log("Will not use the Avatar as the Actor Thumbnail...");
+    $logger.verbose("Will not use the Avatar as the Actor Thumbnail...");
   } else {
-    $log("Will use the Avatar as the Actor Thumbnail...");
+    $logger.verbose("Will use the Avatar as the Actor Thumbnail...");
   }
 
-  let firstResult: cheerio.Cheerio | undefined;
+  let firstResult: cheerio.Cheerio;
   try {
+    $logger.debug(`Searching for ${actorName}`);
     firstResult = await getFirstSearchResult(ctx, actorName);
   } catch (error) {
     $throw(error.message);
+    return {}; // return for type compatibility
   }
 
-  if (!firstResult) $throw(`${actorName} not found!`);
+  if (!firstResult) {
+    $throw(`${actorName} not found!`);
+  }
 
-  const href = (firstResult as cheerio.Cheerio).attr("href");
+  const href = firstResult.attr("href")?.replace("/feed", "");
 
-  let html: string | undefined;
+  let html: string;
   try {
-    html = (await $axios.get(`https://freeones.com${href}/profile`)).data;
+    const url = `https://freeones.com${href}/bio`;
+    $logger.debug(`GET ${url}`);
+    html = (await $axios.get<string>(url)).data;
   } catch (error) {
     $throw(error.message);
+    return {}; // return for type compatibility
   }
   const $ = $cheerio.load(html || "");
 
-  function getNationality() {
+  function getNationality(): Partial<{ nationality: string }> {
     if (isBlacklisted("nationality")) return {};
-    $log("Getting nationality...");
+    $logger.verbose("Getting nationality...");
 
     const selector = $('[data-test="section-personal-information"] a[href*="countryCode%5D"]');
 
     if (!selector.length) {
-      $log("Nationality not found");
+      $logger.verbose("Nationality not found");
       return {};
     }
 
@@ -149,9 +186,9 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
     };
   }
 
-  function getHeight() {
+  function getHeight(): Partial<{ height: number }> {
     if (isBlacklisted("height")) return {};
-    $log("Getting height...");
+    $logger.verbose("Getting height...");
 
     const selector = $('[data-test="link_height"] .text-underline-always');
     if (!selector) return {};
@@ -167,9 +204,9 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
     return { height: cmToFt(height) };
   }
 
-  function getWeight() {
+  function getWeight(): Partial<{ weight: number }> {
     if (isBlacklisted("weight")) return {};
-    $log("Getting weight...");
+    $logger.verbose("Getting weight...");
 
     const selector = $('[data-test="link_weight"] .text-underline-always');
     if (!selector) return {};
@@ -185,20 +222,56 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
     return { weight: kgToLbs(weight) };
   }
 
-  function getZodiac() {
-    if (isBlacklisted("zodiac")) return {};
-    $log("Getting zodiac sign...");
+  function computeZodiac(timestamp: number): string | undefined {
+    const inputDate = $moment(timestamp);
+    if (!inputDate.isValid()) return;
 
-    const selector = $('[data-test="link_zodiac"] .text-underline-always');
-    if (!selector) return {};
-    const zodiacText = $(selector).text();
-    const zodiac = zodiacText.split(" (")[0];
-    return { zodiac };
+    const day = inputDate.date();
+    const month = inputDate.month();
+    // signSwitchDay[i] gives the boundary day between two signs, for the month at index 'i' (according to Britannica Encyclopedia)
+    const signSwitchDay = [20, 19, 21, 20, 21, 22, 23, 23, 23, 24, 22, 22];
+    const signAtMonthStart = [
+      "Capricorn",
+      "Aquarius",
+      "Pisces",
+      "Aries",
+      "Taurus",
+      "Gemini",
+      "Cancer",
+      "Leo",
+      "Virgo",
+      "Libra",
+      "Scorpio",
+      "Sagittarius",
+    ];
+
+    // signSwitchDay[0] gives 20, meaning any day less than 20 at month index 0 (january) is the sign at the start of that month index (capricorn),
+    // and any day greater than 20 is the sign at the start of the next month: i+1 (aquarius)
+    const isBeforeSwithchDay = day <= signSwitchDay[month];
+
+    // Mod 12 allows us to cycle between 0-11, so if the day is past the boundary day of month index 11 (december), we'll get index 0 (january)
+    return signAtMonthStart[isBeforeSwithchDay ? month : (month + 1) % 12];
   }
 
-  function getBirthplace() {
+  function getZodiac(): Partial<{ zodiac: string }> {
+    if (isBlacklisted("zodiac")) return {};
+
+    const bornOn = getAge().bornOn;
+    if (!bornOn) {
+      $logger.verbose("No birth date found => zodiac will be empty.");
+      return {};
+    }
+    const computedZodiac = computeZodiac(bornOn.valueOf());
+    $logger.verbose(
+      `Computed zodiac sign for: ${new Date(bornOn).toLocaleDateString()}: ${computedZodiac}`
+    );
+
+    return { zodiac: computedZodiac };
+  }
+
+  function getBirthplace(): Partial<{ birthplace: string }> {
     if (isBlacklisted("birthplace")) return {};
-    $log("Getting birthplace...");
+    $logger.verbose("Getting birthplace...");
 
     const selector = $('[data-test="section-personal-information"] a[href*="placeOfBirth"]');
     const cityName = selector.length
@@ -206,7 +279,7 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
       : null;
 
     if (!cityName) {
-      $log("No birthplace found");
+      $logger.verbose("No birthplace found");
       return {};
     } else {
       const stateSelector = $('[data-test="section-personal-information"] a[href*="province"]');
@@ -214,31 +287,37 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
         ? ($(stateSelector).attr("href") || "").split("=").slice(-1)[0]
         : null;
       if (!stateName) {
-        $log("No birth province found, just city!");
+        $logger.verbose("No birth province found, just city!");
         return { birthplace: cityName };
       } else {
-        const bplace = cityName + ", " + stateName.split("-")[0].trim();
+        const bplace = `${cityName}, ${stateName.split("-")[0].trim()}`;
         return { birthplace: bplace };
       }
     }
   }
 
-  function scrapeText<T>(prop: string, selector: string): T | {} {
+  function scrapeText<T extends Record<string, string>>(
+    prop: string,
+    selector: string
+  ): Partial<T> {
     if (isBlacklisted(prop)) return {};
-    $log(`Getting ${prop}...`);
+    $logger.verbose(`Getting ${prop}...`);
 
     const el = $(selector);
     if (!el) return {};
 
-    return ({ [prop]: el.text() } as any) as T;
+    return { [prop]: el.text() } as T;
   }
 
-  async function getAvatar() {
+  async function getAvatar(): Promise<Partial<{ avatar: string; thumbnail: string }>> {
     if (args.dry) return {};
-    if (isBlacklisted("avatar")) return {};
-    $log("Getting avatar...");
+    if (isBlacklisted("avatar") && !useAvatarAsThumbnail) {
+      // If not using either avatar or thumbnail, return nothing
+      return {};
+    }
+    $logger.verbose("Getting avatar (and/or thumbnail)...");
 
-    const imgEl = $(".profile-header .img-fluid");
+    const imgEl = $(`.dashboard-header img.img-fluid`);
     if (!imgEl) return {};
 
     const url = $(imgEl).attr("src");
@@ -246,20 +325,21 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
     if (!url) return {};
 
     const imgId = await $createImage(url, `${actorName} (avatar)`);
+    const result: Partial<{ avatar: string; thumbnail: string }> = {};
 
-    if (!useAvatarAsThumbnail) {
-      return { avatar: imgId };
-    } else {
-      return {
-        avatar: imgId,
-        thumbnail: imgId,
-      };
+    if (!isBlacklisted("avatar")) {
+      result.avatar = imgId;
     }
+    if (useAvatarAsThumbnail) {
+      result.thumbnail = imgId;
+    }
+
+    return result;
   }
 
-  function getAge() {
+  function getAge(): Partial<{ bornOn: number }> {
     if (isBlacklisted("bornOn")) return {};
-    $log("Getting age...");
+    $logger.verbose("Getting age...");
 
     const aTag = $('[data-test="section-personal-information"] a');
     if (!aTag) return {};
@@ -274,14 +354,14 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
         bornOn: timestamp,
       };
     } else {
-      $log("Could not find actor birth date.");
+      $logger.verbose("Could not find actor birth date.");
       return {};
     }
   }
 
-  function getAlias() {
+  function getAlias(): Partial<{ aliases: string[] }> {
     if (isBlacklisted("aliases")) return {};
-    $log("Getting aliases...");
+    $logger.verbose("Getting aliases...");
 
     const aliasSel = $('[data-test="section-alias"] p[data-test*="p_aliases"]');
     const aliasText = aliasSel.text();
@@ -292,7 +372,41 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
     return { aliases };
   }
 
-  function scrapeMeasurements() {
+  function getCareer(): Partial<{
+    started: number;
+    ended: number;
+  }> {
+    if (isBlacklisted("career")) return {};
+    $logger.verbose("Getting career information...");
+
+    const careerSel = $(".timeline-horizontal p.m-0");
+    if (!careerSel) return {};
+
+    const career: Partial<{
+      started: number;
+      ended: number;
+    }> = {};
+
+    const careerStart = $(careerSel[0]).text();
+    if (careerStart && careerStart !== "Begin") {
+      career.started = Number.parseInt(careerStart, 10);
+      if (Number.isNaN(career.started)) {
+        delete career.started;
+      }
+    }
+
+    const careerEnd = $(careerSel[1]).text();
+    if (careerEnd && careerEnd !== "Now") {
+      career.ended = Number.parseInt(careerEnd, 10);
+      if (Number.isNaN(career.ended)) {
+        delete career.ended;
+      }
+    }
+
+    return career;
+  }
+
+  function scrapeMeasurements(): Measurements | null {
     const measurementParts: string[] = [];
     $('[data-test="p-measurements"] .text-underline-always').each(function (
       this: cheerio.Element,
@@ -307,27 +421,31 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
 
   const measurements = scrapeMeasurements();
 
-  function getMeasurements() {
+  function getMeasurements(): Partial<{ measurements: string }> {
     if (isBlacklisted("measurements")) return {};
-    $log("Getting measurements...");
+    $logger.verbose("Getting measurements...");
     return measurements ? { measurements: measurements.toString() } : {};
   }
 
-  function getWaistSize() {
+  function getWaistSize(): Partial<{ ["waist size"]: number }> {
     if (isBlacklisted("measurements")) return {};
-    $log("Getting waist size...");
+    $logger.verbose("Getting waist size...");
     return measurements ? { "waist size": measurements.waist } : {};
   }
 
-  function getHipSize() {
+  function getHipSize(): Partial<{ ["hip size"]: number }> {
     if (isBlacklisted("measurements")) return {};
-    $log("Getting hip size...");
+    $logger.verbose("Getting hip size...");
     return measurements ? { "hip size": measurements.hip } : {};
   }
 
-  function getBraSize() {
+  function getBraSize(): Partial<{
+    ["cup size"]: string;
+    ["bra size"]: string;
+    ["bust size"]: number;
+  }> {
     if (isBlacklisted("measurements")) return {};
-    $log("Getting bra/cup/bust size...");
+    $logger.verbose("Getting bra/cup/bust size...");
     return measurements
       ? {
           "cup size": measurements.cup,
@@ -337,23 +455,46 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
       : {};
   }
 
-  function getGender() {
+  function getGender(): Partial<{ sex: string; gender: string }> {
     if (isBlacklisted("gender")) return {};
     return { sex: "Female", gender: "Female" };
   }
 
-  let tattooResult = scrapeText<{ tattoos: string }>("tattoos", '[cdata-test="p_has_tattoos"]');
-  if (!tattooResult["tattoos"]) {
-    tattooResult = scrapeText<{ tattoos: string }>("tattoos", '[data-test="p_has_tattoos"]');
-  }
-  const tattooText = tattooResult["tattoos"];
-  const hasTattoos = !!tattooText && !!tattooText.length && tattooText !== "No Tattoos";
+  function getTattoos(): Partial<{ tattoos: string | string[] }> {
+    if (isBlacklisted("tattoos")) return {};
+    let tattooResult = scrapeText<{ tattoos: string }>("tattoos", '[cdata-test="p_has_tattoos"]');
+    if (!tattooResult.tattoos) {
+      tattooResult = scrapeText<{ tattoos: string }>("tattoos", '[data-test="p_has_tattoos"]');
+    }
+    const tattooText = tattooResult.tattoos ? tattooResult.tattoos.trim() : "";
+    if (!tattooText || /No Tattoos/i.test(tattooText)) {
+      return {};
+    }
 
-  const piercingText = scrapeText<{ piercings: string }>(
-    "piercings",
-    '[data-test="p_has_piercings"]'
-  )["piercings"];
-  const hasPiercings = !!piercingText && !!piercingText.length && piercingText !== "No Piercings";
+    if (args.tattoosType === "array") {
+      return { tattoos: tattooText.split(";").map((s) => s.trim()) };
+    }
+
+    return { tattoos: tattooText };
+  }
+
+  function getPiercings(): Partial<{ piercings: string | string[] }> {
+    if (isBlacklisted("piercings")) return {};
+    const res: { piercings?: string } = scrapeText<{ piercings: string }>(
+      "piercings",
+      '[data-test="p_has_piercings"]'
+    );
+    const piercingText = res.piercings?.trim();
+    if (!piercingText || /No Piercings/i.test(piercingText)) {
+      return {};
+    }
+
+    if (args.piercingsType === "array") {
+      return { piercings: piercingText.split(";").map((s) => s.trim()) };
+    }
+
+    return { piercings: piercingText };
+  }
 
   const custom = {
     ...scrapeText<{ ["hair color"]: string }>(
@@ -377,28 +518,47 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
     ...getBirthplace(),
     ...getZodiac(),
     ...getGender(),
+    ...getTattoos(),
+    ...getCareer(),
+    ...getPiercings(),
   };
 
-  const data = {
+  if (custom.tattoos === "Unknown") {
+    delete custom.tattoos;
+  }
+
+  const data: ActorOutput = {
     ...getNationality(),
     ...getAge(),
     ...getAlias(),
     ...(await getAvatar()),
     custom,
-  } as ActorOutput;
+  };
 
   if (!isBlacklisted("labels")) {
     data.labels = [];
-    if (custom["hair color"]) data.labels.push(`${custom["hair color"]} Hair`);
-    if (custom["eye color"]) data.labels.push(`${custom["eye color"]} Eyes`);
-    if (custom.ethnicity) data.labels.push(custom.ethnicity);
-    if (custom.gender) data.labels.push("Female");
-    if (hasPiercings) data.labels.push("Piercings");
-    if (hasTattoos) data.labels.push("Tattoos");
+    if (custom["hair color"]) {
+      data.labels.push(`${custom["hair color"]} Hair`);
+    }
+    if (custom["eye color"]) {
+      data.labels.push(`${custom["eye color"]} Eyes`);
+    }
+    if (custom.ethnicity) {
+      data.labels.push(custom.ethnicity);
+    }
+    if (custom.gender) {
+      data.labels.push("Female");
+    }
+    if (custom.piercings) {
+      data.labels.push("Piercings");
+    }
+    if (custom.tattoos) {
+      data.labels.push("Tattoos");
+    }
   }
 
   if (args.dry === true) {
-    $log("Would have returned:", data);
+    $logger.info(`Would have returned: ${$formatMessage(data)}`);
     return {};
   }
   return data;

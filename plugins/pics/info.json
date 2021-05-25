@@ -1,0 +1,248 @@
+{
+  "name": "pics",
+  "version": "2.1.1",
+  "authors": ["boi123212321", "john4valor", "leadwolf"],
+  "description": "Find actor, scene, movie, studio images based on local files. GIF support.",
+  "pluginEvents": [
+    "actorCreated",
+    "actorCustom",
+    "sceneCreated",
+    "sceneCustom",
+    "movieCreated",
+    "studioCreated",
+    "studioCustom"
+  ],
+  "arguments": [
+    {
+      "name": "dry",
+      "type": "Boolean",
+      "required": false,
+      "default": false,
+      "description": "Whether to commit data changes"
+    },
+    {
+      "name": "actors",
+      "type": "Array",
+      "required": true,
+      "default": [],
+      "description": "Array of picture search configurations for actors"
+    },
+    {
+      "name": "actors.[0]",
+      "type": "Object",
+      "required": true,
+      "default": {},
+      "description": "One configuration for a type of actor picture"
+    },
+    {
+      "name": "actors.[0].prop",
+      "type": "`'thumbnail' \\| 'altThumbnail' \\| 'avatar' \\| 'hero' \\| 'extra'`",
+      "required": true,
+      "default": "thumbnail",
+      "description": "The type of picture that should be attached to the actor. Set to `'extra'` to add any image you want to the gallery"
+    },
+    {
+      "name": "actors.[0].path",
+      "type": "string",
+      "required": true,
+      "default": "./path/to/all/actor/pictures",
+      "description": "The path in which to search for this picture"
+    },
+    {
+      "name": "actors.[0].searchTerms",
+      "type": "string[]",
+      "required": false,
+      "default": ["thumbnail"],
+      "description": "Extra terms that the picture path should contain"
+    },
+    {
+      "name": "actors.[0].blacklistTerms",
+      "type": "string",
+      "required": false,
+      "default": [],
+      "description": "Terms that should not be found in an image path"
+    },
+    {
+      "name": "actors.[0].mustMatchInFilename",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "If the name of the actor and the `searchTerms` must be matched against the filename, instead of the file path"
+    },
+    {
+      "name": "actors.[0].max",
+      "type": "number",
+      "required": false,
+      "default": -1,
+      "description": "Only needed for an `'extra'` search configuration: how many max images to get. Do not define or use a negative number to get all. You can otherwise omit this property"
+    },
+    {
+      "name": "scenes",
+      "type": "Array",
+      "required": true,
+      "default": [],
+      "description": "Array of picture search configurations for scenes"
+    },
+    {
+      "name": "scenes.[0]",
+      "type": "Object",
+      "required": true,
+      "default": {},
+      "description": "One configuration for a type of scene picture"
+    },
+    {
+      "name": "scenes.[0].prop",
+      "type": "`'thumbnail' \\| 'extra'`",
+      "required": true,
+      "default": "thumbnail",
+      "description": "The type of picture that should be attached to the scene. Set to `'extra'` to add any image you want to the gallery"
+    },
+    {
+      "name": "scenes.[0].path",
+      "type": "string",
+      "required": true,
+      "default": "./path/to/all/scene/pictures",
+      "description": "The path in which to search for this picture"
+    },
+    {
+      "name": "scenes.[0].searchTerms",
+      "type": "string[]",
+      "required": false,
+      "default": ["thumbnail"],
+      "description": "Extra terms that the picture path should contain"
+    },
+    {
+      "name": "scenes.[0].blacklistTerms",
+      "type": "string",
+      "required": false,
+      "default": [],
+      "description": "Terms that should not be found in an image path"
+    },
+    {
+      "name": "scenes.[0].mustMatchInFilename",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "If the name of the scene and the `searchTerms` must be matched against the filename, instead of the file path"
+    },
+    {
+      "name": "scenes.[0].max",
+      "type": "number",
+      "required": false,
+      "default": -1,
+      "description": "Only needed for an `'extra'` search configuration: how many max images to get. Do not define or use a negative number to get all. You can otherwise omit this property"
+    },
+    {
+      "name": "movies",
+      "type": "Array",
+      "required": true,
+      "default": [],
+      "description": "Array of picture search configurations for movies"
+    },
+    {
+      "name": "movies.[0]",
+      "type": "Object",
+      "required": true,
+      "default": {},
+      "description": "One configuration for a type of movie picture"
+    },
+    {
+      "name": "movies.[0].prop",
+      "type": "`'backCover' \\| 'frontCover' \\| 'spineCover' \\| 'extra'`",
+      "required": true,
+      "default": "thumbnail",
+      "description": "The type of picture that should be attached to the movie. Set to `'extra'` to add any image you want to the gallery"
+    },
+    {
+      "name": "movies.[0].path",
+      "type": "string",
+      "required": true,
+      "default": "./path/to/all/movie/pictures",
+      "description": "The path in which to search for this picture"
+    },
+    {
+      "name": "movies.[0].searchTerms",
+      "type": "string[]",
+      "required": false,
+      "default": ["thumbnail"],
+      "description": "Extra terms that the picture path should contain"
+    },
+    {
+      "name": "movies.[0].blacklistTerms",
+      "type": "string",
+      "required": false,
+      "default": [],
+      "description": "Terms that should not be found in an image path"
+    },
+    {
+      "name": "actors.[0].mustMatchInFilename",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "If the name of the movie and the `searchTerms` must be matched against the filename, instead of the file path"
+    },
+    {
+      "name": "movies.[0].max",
+      "type": "number",
+      "required": false,
+      "default": -1,
+      "description": "Only needed for an `'extra'` search configuration: how many max images to get. Do not define or use a negative number to get all. You can otherwise omit this property"
+    },
+    {
+      "name": "studios",
+      "type": "Array",
+      "required": true,
+      "default": [],
+      "description": "Array of picture search configurations for studios"
+    },
+    {
+      "name": "studios.[0]",
+      "type": "Object",
+      "required": true,
+      "default": {},
+      "description": "One configuration for a type of studio picture"
+    },
+    {
+      "name": "studios.[0].prop",
+      "type": "`'thumbnail' \\| 'extra'`",
+      "required": true,
+      "default": "thumbnail",
+      "description": "The type of picture that should be attached to the studio. Set to `'extra'` to add any image you want to the gallery"
+    },
+    {
+      "name": "studios.[0].path",
+      "type": "string",
+      "required": true,
+      "default": "./path/to/all/studio/pictures",
+      "description": "The path in which to search for this picture"
+    },
+    {
+      "name": "studios.[0].searchTerms",
+      "type": "string[]",
+      "required": false,
+      "default": ["thumbnail"],
+      "description": "Extra terms that the picture path should contain"
+    },
+    {
+      "name": "studios.[0].blacklistTerms",
+      "type": "string",
+      "required": false,
+      "default": [],
+      "description": "Terms that should not be found in an image path"
+    },
+    {
+      "name": "studios.[0].mustMatchInFilename",
+      "type": "boolean",
+      "required": false,
+      "default": false,
+      "description": "If the name of the studio and the `searchTerms` must be matched against the filename, instead of the file path"
+    },
+    {
+      "name": "studios.[0].max",
+      "type": "number",
+      "required": false,
+      "default": -1,
+      "description": "Only needed for an `'extra'` search configuration: how many max images to get. Do not define or use a negative number to get all. You can otherwise omit this property"
+    }
+  ]
+}

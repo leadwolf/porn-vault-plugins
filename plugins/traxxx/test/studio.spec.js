@@ -5,6 +5,9 @@ const {
   defaultArgsResultFixtures,
   genericResultFixtures,
 } = require("./fixtures/studio.fixtures");
+const { createPluginRunner } = require("../../../context");
+
+const runPlugin = createPluginRunner("traxxx", plugin);
 
 describe("traxxx studio", () => {
   // eslint-disable-next-line mocha/no-setup-in-describe
@@ -16,7 +19,7 @@ describe("traxxx studio", () => {
           it(`[${fixtureIdx}] ${fixture.name}`, async () => {
             let errored = false;
             try {
-              await plugin({
+              await runPlugin({
                 ...fixture.context,
                 event,
               });
@@ -40,7 +43,7 @@ describe("traxxx studio", () => {
             let result;
 
             try {
-              result = await plugin({
+              result = await runPlugin({
                 ...fixture.context,
                 event,
               });
@@ -65,7 +68,7 @@ describe("traxxx studio", () => {
             let result;
 
             try {
-              result = await plugin({
+              result = await runPlugin({
                 ...fixture.context,
                 event,
               });

@@ -1,13 +1,13 @@
-const context = require("../../../context");
 const plugin = require("../main");
 const { expect } = require("chai");
+const { createPluginRunner } = require("../../../context");
+
+const runPlugin = createPluginRunner("adultEmpire", plugin);
 
 describe("adultempire", () => {
   describe("Movies", () => {
     it("Should fetch covers & studio name from URL", async () => {
-      console.log("Fetching adultempire.com...");
-      const result = await plugin({
-        ...context,
+      const result = await runPlugin({
         movieName:
           "https://www.adultempire.com/1683550/young-girl-seductions-porn-videos.html?qs=Young%20Girl%20Seductions",
         args: {},

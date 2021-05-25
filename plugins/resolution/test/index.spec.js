@@ -1,12 +1,14 @@
-const context = require("../../../context");
 const plugin = require("../main");
 const { expect } = require("chai");
+const { createPluginRunner } = require("../../../context");
+
+const runPlugin = createPluginRunner("resolution", plugin);
 
 describe("resolution", () => {
   it("Should fail", () => {
     let errord = false;
     try {
-      plugin(context);
+      runPlugin(context);
     } catch (error) {
       expect(error.message).to.equal("Uh oh. You shouldn't use the plugin for this type of event");
       errord = true;
@@ -15,8 +17,7 @@ describe("resolution", () => {
   });
 
   it("Should find 720p", () => {
-    const result = plugin({
-      ...context,
+    const result = runPlugin({
       scenePath: "test",
       scene: {
         meta: {
@@ -32,8 +33,7 @@ describe("resolution", () => {
   });
 
   it("Should find 1080p from path", () => {
-    const result = plugin({
-      ...context,
+    const result = runPlugin({
       scenePath: "/videos/Avi Love [1080p].mp4",
       scene: {
         meta: {},
@@ -45,8 +45,7 @@ describe("resolution", () => {
   });
 
   it("Should not find 800p from path", () => {
-    const result = plugin({
-      ...context,
+    const result = runPlugin({
       scenePath: "/videos/Avi Love [800p].mp4",
       scene: {
         meta: {},
@@ -56,8 +55,7 @@ describe("resolution", () => {
   });
 
   it("Should find 800p from path", () => {
-    const result = plugin({
-      ...context,
+    const result = runPlugin({
       scenePath: "/videos/Avi Love [800p].mp4",
       scene: {
         meta: {},
@@ -72,8 +70,7 @@ describe("resolution", () => {
   });
 
   it("Should not find 1080p from path", () => {
-    const result = plugin({
-      ...context,
+    const result = runPlugin({
       scenePath: "/videos/Avi Love [1080p].mp4",
       scene: {
         meta: {},
@@ -86,8 +83,7 @@ describe("resolution", () => {
   });
 
   it("Should find 720p and merge", () => {
-    const result = plugin({
-      ...context,
+    const result = runPlugin({
       scenePath: "test",
       scene: {
         meta: {
@@ -106,8 +102,7 @@ describe("resolution", () => {
   });
 
   it("Should find 800p from path and merge", () => {
-    const result = plugin({
-      ...context,
+    const result = runPlugin({
       scenePath: "/videos/Avi Love [800p].mp4",
       scene: {
         meta: {},
@@ -127,8 +122,7 @@ describe("resolution", () => {
   it("Should not return anything", () => {
     let errord = false;
     try {
-      plugin({
-        ...context,
+      runPlugin({
         scenePath: "/videos/Avi Love [800p].mp4",
         scene: {
           meta: {},

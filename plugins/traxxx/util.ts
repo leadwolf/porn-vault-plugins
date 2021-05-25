@@ -7,7 +7,7 @@ import {
 } from "./types";
 
 export const hasProp = (target: unknown, prop: string): boolean => {
-  return target && typeof target === "object" && Object.hasOwnProperty.call(target, prop);
+  return !!target && typeof target === "object" && Object.hasOwnProperty.call(target, prop);
 };
 
 const DEFAULT_STUDIO_SETTINGS: StudioSettings = {
@@ -29,7 +29,7 @@ const DEFAULT_STUDIO_SETTINGS: StudioSettings = {
 export const validateArgs = ({
   args,
   $throw,
-  $log,
+  $logger,
   studioName,
 }: MyStudioContext): MyStudioArgs | void => {
   let validatedArgs: DeepPartial<MyStudioArgs> | undefined;
@@ -47,8 +47,8 @@ export const validateArgs = ({
   }
 
   if (!validatedArgs.studios || typeof validatedArgs.studios !== "object") {
-    $log(
-      `[TRAXXX] MSG: Missing "args.studios.channelPriority, setting to default: `,
+    $logger.verbose(
+      `Missing "args.studios.channelPriority, setting to default: `,
       DEFAULT_STUDIO_SETTINGS
     );
     validatedArgs.studios = DEFAULT_STUDIO_SETTINGS;
@@ -67,15 +67,15 @@ export const validateArgs = ({
     { prop: "mergeAliases", type: "boolean" },
   ].forEach((propCheck) => {
     if (!hasProp(studios, propCheck.prop)) {
-      $log(
-        `[TRAXXX] MSG: Missing "args.studios.${propCheck.prop}", setting to default: "${
+      $logger.verbose(
+        `Missing "args.studios.${propCheck.prop}", setting to default: "${
           DEFAULT_STUDIO_SETTINGS[propCheck.prop]
         }"`
       );
       studios[propCheck.prop] = DEFAULT_STUDIO_SETTINGS[propCheck.prop];
     } else if (typeof studios[propCheck.prop] !== propCheck.type) {
       return $throw(
-        `[TRAXXX] MSG: "args.studios.${propCheck.prop}" is not a ${propCheck.type}, cannot run plugin"`
+        `"args.studios.${propCheck.prop}" is not a ${propCheck.type}, cannot run plugin"`
       );
     }
   });
@@ -91,13 +91,13 @@ export const validateArgs = ({
   ["whitelist", "blacklist", "whitelistOverride", "blacklistOverride"].forEach((arrayProp) => {
     const arr = studios[arrayProp];
     if (!hasProp(studios, arrayProp)) {
-      $log(
-        `[TRAXXX] MSG: Missing "args.studios.${arrayProp}", setting to default: "${DEFAULT_STUDIO_SETTINGS[arrayProp]}"`
+      $logger.verbose(
+        `Missing "args.studios.${arrayProp}", setting to default: "${DEFAULT_STUDIO_SETTINGS[arrayProp]}"`
       );
       studios[arrayProp] = DEFAULT_STUDIO_SETTINGS[arrayProp];
     } else if (!Array.isArray(arr) || !arr.every((prop) => typeof prop === "string")) {
       return $throw(
-        `[TRAXXX] MSG: "args.studios.${arrayProp}" does not only contain strings, cannot run plugin"`
+        `"args.studios.${arrayProp}" does not only contain strings, cannot run plugin"`
       );
     }
   });

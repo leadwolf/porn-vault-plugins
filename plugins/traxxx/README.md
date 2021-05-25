@@ -1,8 +1,17 @@
-## traxxx 0.1.0
+## traxxx 0.1.2
 
 by leadwolf
 
 Scrape data from traxxx
+
+### Download links
+Each download link is for the latest version of the plugin, for the indicated porn-vault server version.  
+Make sure you are reading the documentation of the plugin, for the correct porn-vault server version.  
+| Server version                                                                                          | Plugin documentation                                                                                   |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| [Download link for: stable](https://raw.githubusercontent.com/porn-vault/plugins/master/dist/traxxx.js) | [documentation](https://github.com/porn-vault/porn-vault-plugins/blob/master/plugins/traxxx/README.md) |
+| [Download link for: 0.27](https://raw.githubusercontent.com/porn-vault/plugins/0.27/dist/traxxx.js)     | [documentation](https://github.com/porn-vault/porn-vault-plugins/blob/0.27/plugins/traxxx/README.md)   |
+
 
 ### Documentation
 
@@ -19,7 +28,7 @@ This plugin retrieves data from Traxxx.
     * `aliases` : aliases of the studio
     * `parent`: the parent channel/network
     * `custom` : custom fields:
-        * `Traxxx Id` : the matched id (for use by plugins)
+        * `Traxxx Slug` : the slug identifier (for use by plugins)
         * `Traxxx Type` : the type of channel/network (for use by plugins)
         * `Homepage` : the Homepage of the studio
 
@@ -30,6 +39,10 @@ This plugin retrieves data from Traxxx.
 
 - When the plugin is run for a name, that can be either a channel or a network, the plugin will return the data according to the `args.studios.channelPriority` config. When `true`, the channel data will be returned, and the network, when `false`.  
 In this case, when `args.studios.uniqueNames` is `true`, the name will be appended with the appropriate suffix `args.studios.channelSuffix` & `args.studios.channelSuffix`. Otherwise, the name will be returned as is in Traxxx.
+- 🚨 WARNING: If you have a suffix in `channelSuffix`: it may lead to "duplicate" studios being created.  
+Example: with a suffix such as `" (Channel)"`. First, a scene as scanned and a scene plugin returns a studio called `"Test"`. Since the studio doesn't exist, it is created. Then this plugin is then run, changing the studio name to `"Test (Channel)"`  
+A second sene is scanned, and a scene plugin again returns a studio called `"Test"`. Depending on your matching config, the returned studio `"Test"` may not match the existing studio `"Test (Channel)"`. Thus, a new `"Test"` studio will be created. Then, this plugin is run on the newly created studio, changing its name to `"Test (Channel)"`.  
+So now you have 2 studios called `"Test (Channel)"`.
 
 - If the plugin receives a studio name that already has the same suffix as in the args, it will only try to search and return the data for that type indicated by the suffix.
 
@@ -46,7 +59,7 @@ Example: plugin `A` returns `custom.myField: 'a string'`. and plugin `B` *would*
 | studios                   | Object   | false    | Configuration for studio events                                                                                                                                                                                                                                                               |
 | studios.channelPriority   | Boolean  | false    | When the studio type is unknown, and the name corresponds to both a channel & a network, whether to prefer the channel or the network                                                                                                                                                         |
 | studios.uniqueNames       | Boolean  | false    | When the studio name corresponds to both a channel & a network, whether to append suffixes to the name to avoid conflicts. The suffixes obviously cannot be the same. If the studio name already has a suffix, it will be kept, even if this setting is false                                 |
-| studios.channelSuffix     | String   | false    | When `studios.uniqueNames` is active returning a **channel** name that also corresponds to a network, will be appended to the name. WARNING: spaces between the name & suffix will not be automatically added                                                                                 |
+| studios.channelSuffix     | String   | false    | When `studios.uniqueNames` is active and returning a **channel** name that also corresponds to a network, will be appended to the name. WARNING: spaces between the name & suffix will not be automatically added                                                                             |
 | studios.networkSuffix     | String   | false    | When `studios.uniqueNames` is active and returning a **network** name that also corresponds to a channel, will be appended to the name. WARNING: spaces between the name & suffix will not be automatically added                                                                             |
 | studios.mergeAliases      | Boolean  | false    | When the previous plugin returned aliases, if our plugins aliases should be merged with them or override them                                                                                                                                                                                 |
 | studios.whitelist         | String[] | false    | Array of data fields to pick. When non empty, only the fields listed will be returned. Possible values: [`'name', 'description', 'thumbnail', 'aliases', 'parent'`].                                                                                                                          |
@@ -57,19 +70,20 @@ Example: plugin `A` returns `custom.myField: 'a string'`. and plugin `B` *would*
 ### Example installation with default arguments
 
 `config.json`
+
 ```json
 ---
 {
   "plugins": {
     "register": {
       "traxxx": {
-        "path": "./plugins/traxxx/main.ts",
+        "path": "./plugins/traxxx.js",
         "args": {
           "dry": false,
           "studios": {
             "channelPriority": true,
             "uniqueNames": true,
-            "channelSuffix": " (Channel)",
+            "channelSuffix": "",
             "networkSuffix": " (Network)",
             "mergeAliases": true,
             "whitelist": [],
@@ -94,18 +108,19 @@ Example: plugin `A` returns `custom.myField: 'a string'`. and plugin `B` *would*
 ```
 
 `config.yaml`
+
 ```yaml
 ---
 plugins:
   register:
     traxxx:
-      path: ./plugins/traxxx/main.ts
+      path: ./plugins/traxxx.js
       args:
         dry: false
         studios:
           channelPriority: true
           uniqueNames: true
-          channelSuffix: " (Channel)"
+          channelSuffix: ""
           networkSuffix: " (Network)"
           mergeAliases: true
           whitelist: []
@@ -119,4 +134,5 @@ plugins:
       - traxxx
 
 ---
+
 ```

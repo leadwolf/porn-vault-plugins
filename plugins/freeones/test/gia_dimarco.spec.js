@@ -1,10 +1,11 @@
-const context = require("../../../context");
 const plugin = require("../main");
 const { expect } = require("chai");
+const { createPluginRunner } = require("../../../context");
+
+const runPlugin = createPluginRunner("freeones", plugin);
 
 function search(args = {}) {
-  return plugin({
-    ...context,
+  return runPlugin({
     actorName: "Gia DiMarco",
     args,
   });
@@ -12,10 +13,9 @@ function search(args = {}) {
 
 describe("freeones", () => {
   it("Search 'Gia DiMarco'", async () => {
-    console.log("Fetching freeones.com...");
     const result = await search({
       dry: false,
-      blacklist: [],
+      blacklist: ["avatar"],
       useImperial: false,
       useAvatarAsThumbnail: false,
     });
@@ -23,22 +23,26 @@ describe("freeones", () => {
       "hair color": "Brown",
       "eye color": "Brown",
       ethnicity: "Caucasian",
-      height: 168,
-      weight: 57,
-      birthplace: "Addison, IL, IL",
-      zodiac: "Virgo",
-      measurements: "34C-26-36",
-      "waist size": 26,
-      "hip size": 36,
-      "cup size": "C",
+      height: 163,
+      weight: 50,
+      birthplace: "San Francisco, CA",
+      zodiac: "Scorpio",
+      measurements: "34D-24-35",
+      "waist size": 24,
+      "hip size": 35,
+      "cup size": "D",
       "bust size": 34,
-      "bra size": "34C",
+      "bra size": "34D",
       gender: "Female",
       sex: "Female",
+      started: 2005,
+      piercings: "Left Nostril; Clitoris",
+      tattoos:
+        'Small Stars Behind Right Ear; 2 Red Flowers With Leaves Upper Back; Large Design Of Flames, Wings And 6 Red Roses Lower Back; "La Bella Vita" Left Side Of Torso; Traces Of Removed Floral Right Hip; Cherries, Hearts And Stars Above Of Pubes; Nautical Motif',
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
-    expect(result.avatar).to.be.equal(undefined);
+    expect(result.avatar).to.be.undefined;
     expect(result.thumbnail).to.be.undefined;
     expect(result.labels).to.have.length.greaterThan(0);
     expect(result.labels).to.contain("Brown Hair");
@@ -46,38 +50,41 @@ describe("freeones", () => {
     expect(result.labels).to.contain("Caucasian");
     expect(result.labels).to.contain("Female");
     expect(result.labels).to.contain("Piercings");
-    expect(result.labels).to.not.contain("Tattoos");
+    expect(result.labels).to.contain("Tattoos");
   });
 
   it("Search 'Gia DiMarco' without measurements", async () => {
-    console.log("Fetching freeones.com...");
     const result = await search({
       dry: false,
-      blacklist: ["measurements"],
+      blacklist: ["measurements", "avatar"],
       useImperial: false,
-      useAvatarAsThumbnail: false,
+      useAvatarAsThumbnail: true,
     });
     expect(result.custom).to.deep.equal({
       "hair color": "Brown",
       "eye color": "Brown",
       ethnicity: "Caucasian",
-      height: 168,
-      weight: 57,
-      birthplace: "Addison, IL, IL",
-      zodiac: "Virgo",
+      height: 163,
+      weight: 50,
+      birthplace: "San Francisco, CA",
+      zodiac: "Scorpio",
       gender: "Female",
       sex: "Female",
+      started: 2005,
+      piercings: "Left Nostril; Clitoris",
+      tattoos:
+        'Small Stars Behind Right Ear; 2 Red Flowers With Leaves Upper Back; Large Design Of Flames, Wings And 6 Red Roses Lower Back; "La Bella Vita" Left Side Of Torso; Traces Of Removed Floral Right Hip; Cherries, Hearts And Stars Above Of Pubes; Nautical Motif',
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
-    expect(result.avatar).to.be.equal(undefined);
-    expect(result.thumbnail).to.be.undefined;
+    expect(result.avatar).to.be.undefined;
+    expect(result.thumbnail).to.be.a("string");
     expect(result.labels).to.have.length.greaterThan(0);
     expect(result.labels).to.contain("Brown Hair");
     expect(result.labels).to.contain("Brown Eyes");
     expect(result.labels).to.contain("Caucasian");
     expect(result.labels).to.contain("Female");
     expect(result.labels).to.contain("Piercings");
-    expect(result.labels).to.not.contain("Tattoos");
+    expect(result.labels).to.contain("Tattoos");
   });
 });

@@ -72,7 +72,7 @@ export class Api {
         .catch((err) => {
           const _err = err as AxiosError;
           if (_err.response?.status === 404) {
-            this.ctx.$log(`[TRAXXX] MSG: "${idOrSlug}" does not exist as a channel`);
+            this.ctx.$logger.verbose(`"${idOrSlug}" does not exist as a channel`);
           } else {
             this.ctx.$throw(err);
           }
@@ -85,7 +85,7 @@ export class Api {
         .catch((err) => {
           const _err = err as AxiosError;
           if (_err.response?.status === 404) {
-            this.ctx.$log(`[TRAXXX] MSG: "${idOrSlug}" does not exist as a network`);
+            this.ctx.$logger.verbose(`"${idOrSlug}" does not exist as a network`);
           } else {
             this.ctx.$throw(err);
           }

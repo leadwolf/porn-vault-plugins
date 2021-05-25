@@ -30,10 +30,13 @@ interface PluginInfo {
   arguments: PluginArg[];
 }
 
+const BRANCHES = ["master", "0.27"];
+
 const pluginTemplate = fs.readFileSync("plugin_template.md", "utf-8");
 
 const pluginFolder = nodepath.resolve("../plugins");
-const pluginDirNames = fs.readdirSync(pluginFolder);
+// Sort alphanumerically to avoid cross-platform conflicts
+const pluginDirNames = fs.readdirSync(pluginFolder).sort();
 
 const info: Record<string, PluginInfo> = {};
 
@@ -77,13 +80,21 @@ function generatePluginExample(pluginInfo: PluginInfo) {
     plugins: {
       register: {
         [pluginInfo.name]: {
-          path: `./plugins/${pluginInfo.name}/main.ts`,
+          path: `./plugins/${pluginInfo.name}.js`,
           args: defaultArgs,
         },
       },
       events: pluginEvents,
     },
   };
+}
+
+function downloadUrl(branch: string, pluginName: string): string {
+  return `https://raw.githubusercontent.com/porn-vault/plugins/${branch}/dist/${pluginName}.js`;
+}
+
+function docsUrl(branch: string, pluginName: string): string {
+  return `https://github.com/porn-vault/porn-vault-plugins/blob/${branch}/plugins/${pluginName}/README.md`;
 }
 
 const generatePluginDocs = () => {
@@ -109,6 +120,13 @@ const generatePluginDocs = () => {
       name: pluginInfo.name,
       version: pluginInfo.version,
       description: pluginInfo.description,
+      downloadTable: table([
+        ["Server version", "Plugin documentation"],
+        ...BRANCHES.map((branch) => [
+          `[Download link for: ${branch === "master" ? "stable" : branch}](${downloadUrl(branch, pluginDirName)})`,
+          `[documentation](${docsUrl(branch, pluginDirName)})`,
+        ]),
+      ]),
       authors: pluginInfo.authors.join(", "),
       docs,
       hasArgs: pluginInfo.arguments && pluginInfo.arguments.length,
@@ -132,13 +150,16 @@ const generatePluginDocs = () => {
   console.log("Generating index...");
 
   const indexTemplate = fs.readFileSync("template.md", "utf-8");
-  const tableHeaders = ["Plugin", "Description"];
+  const tableHeaders = ["Plugin", "Version", "Description", "Download"];
+  
   const rendered = Handlebars.compile(indexTemplate)({
     table: table([
       tableHeaders,
       ...Object.entries(info).map(([pluginDirName, pluginInfo]) => [
-        `[${pluginInfo.name}](https://github.com/boi123212321/porn-vault-plugins/blob/master/plugins/${pluginDirName}/README.md)`,
+        `[${pluginInfo.name}](${docsUrl("master", pluginDirName)})`,
+        pluginInfo.version,
         pluginInfo.description,
+        `[Link](${downloadUrl("master", pluginDirName)})`,
       ]),
     ]),
   });

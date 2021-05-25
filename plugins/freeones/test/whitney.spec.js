@@ -1,18 +1,18 @@
-const context = require("../../../context");
 const plugin = require("../main");
 const { expect } = require("chai");
+const { createPluginRunner } = require("../../../context");
+
+const runPlugin = createPluginRunner("freeones", plugin);
 
 function searchWhitney(args = {}) {
-  return plugin({
-    ...context,
+  return runPlugin({
     actorName: "Whitney Wright",
     args,
   });
 }
 
 function searchWhitneyKindaWrongThough(args = {}) {
-  return plugin({
-    ...context,
+  return runPlugin({
     actorName: "Whitney Wri",
     args,
   });
@@ -20,7 +20,6 @@ function searchWhitneyKindaWrongThough(args = {}) {
 
 describe("freeones", () => {
   it("Search 'Whitney Wright'", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney();
     expect(result.custom).to.deep.equal({
       "hair color": "Brown",
@@ -36,8 +35,43 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
+    });
+    expect(result.nationality).to.equal("US");
+    expect(result.bornOn).to.be.a("number");
+    expect(result.avatar).to.be.a("string");
+    expect(result.thumbnail).to.be.undefined;
+    expect(result.labels).to.have.length.greaterThan(0);
+    expect(result.labels).to.contain("Brown Hair");
+    expect(result.labels).to.contain("Hazel Eyes");
+    expect(result.labels).to.contain("Caucasian");
+    expect(result.labels).to.contain("Piercings");
+    expect(result.labels).to.not.contain("Tattoos");
+  });
+
+  it("Search 'Whitney Wright, piercings as array'", async () => {
+    const result = await searchWhitney({ piercingsType: "array" });
+    expect(result.custom).to.deep.equal({
+      "hair color": "Brown",
+      "eye color": "Hazel",
+      ethnicity: "Caucasian",
+      height: 168,
+      weight: 57,
+      birthplace: "Oklahoma City, OK",
+      zodiac: "Virgo",
+      measurements: "32B-25-36",
+      "waist size": 25,
+      "hip size": 36,
+      "cup size": "B",
+      "bra size": "32B",
+      "bust size": 32,
+      started: 2016,
+      gender: "Female",
+      sex: "Female",
+      piercings: ["Navel", "Left Ear, Vch"],
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -52,7 +86,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright' with whitelist", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       whitelist: ["nationality", "hair color"],
     });
@@ -65,7 +98,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', dry", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       dry: true,
     });
@@ -73,7 +105,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright, with avatar as thumbnail'", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       useAvatarAsThumbnail: true,
     });
@@ -91,8 +122,10 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -108,7 +141,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wri'", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitneyKindaWrongThough();
     expect(result.custom).to.deep.equal({
       "hair color": "Brown",
@@ -124,8 +156,10 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -141,7 +175,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without hair color", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["hair color"],
     });
@@ -158,8 +191,10 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -174,7 +209,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without eye color", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["eye color"],
     });
@@ -191,8 +225,10 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -207,7 +243,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without ethnicity", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["ethnicity"],
     });
@@ -224,8 +259,10 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -240,7 +277,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without height", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["height"],
     });
@@ -257,8 +293,10 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -274,7 +312,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without weight", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["weight"],
     });
@@ -291,8 +328,10 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -307,7 +346,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without avatar", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["avatar"],
     });
@@ -325,8 +363,10 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -341,7 +381,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without labels", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["labels"],
     });
@@ -359,8 +398,10 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -370,7 +411,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without nationality", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["nationality"],
     });
@@ -388,8 +428,10 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.be.undefined;
     expect(result.bornOn).to.be.a("number");
@@ -405,7 +447,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but imperial", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       useImperial: true,
     });
@@ -423,8 +464,10 @@ describe("freeones", () => {
       "cup size": "B",
       "bra size": "32B",
       "bust size": 32,
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");
@@ -440,7 +483,6 @@ describe("freeones", () => {
   });
 
   it("Search 'Whitney Wright', but without measurements", async () => {
-    console.log("Fetching freeones.com...");
     const result = await searchWhitney({
       blacklist: ["measurements"],
     });
@@ -452,8 +494,10 @@ describe("freeones", () => {
       weight: 57,
       birthplace: "Oklahoma City, OK",
       zodiac: "Virgo",
+      started: 2016,
       gender: "Female",
       sex: "Female",
+      piercings: "Navel; Left Ear, Vch",
     });
     expect(result.nationality).to.equal("US");
     expect(result.bornOn).to.be.a("number");

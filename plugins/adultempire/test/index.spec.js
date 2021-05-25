@@ -1,12 +1,14 @@
-const context = require("../../../context");
+const { createPluginRunner } = require("../../../context");
 const plugin = require("../main");
 const { expect } = require("chai");
+
+const runPlugin = createPluginRunner("adultEmpire", plugin);
 
 describe("adultempire", () => {
   it("Should fail", async () => {
     let errord = false;
     try {
-      await plugin(context);
+      await runPlugin();
     } catch (error) {
       expect(error.message).to.equal("Uh oh. You shouldn't use the plugin for this type of event");
       errord = true;
@@ -16,8 +18,7 @@ describe("adultempire", () => {
 
   describe("Actors", () => {
     it("Should fetch info", async () => {
-      const result = await plugin({
-        ...context,
+      const result = await runPlugin({
         actorName: "Avi love",
         args: {},
       });
@@ -36,9 +37,7 @@ describe("adultempire", () => {
 
   describe("Movies", () => {
     it("Should fetch covers & studio name from page", async () => {
-      console.log("Fetching adultempire.com...");
-      const result = await plugin({
-        ...context,
+      const result = await runPlugin({
         movieName: "tushy raw v5",
         args: {},
       });
@@ -60,9 +59,7 @@ describe("adultempire", () => {
     });
 
     it("Should fetch covers & studio name from page 2", async () => {
-      console.log("Fetching adultempire.com...");
-      const result = await plugin({
-        ...context,
+      const result = await runPlugin({
         movieName: "Black & White Vol. 15",
         args: {},
       });
@@ -84,9 +81,7 @@ describe("adultempire", () => {
     });
 
     it("Should not fetch covers etc (404)", async () => {
-      console.log("Fetching adultempire.com...");
-      const result = await plugin({
-        ...context,
+      const result = await runPlugin({
         movieName: "fasdfawbwaerawerawebr",
         args: {},
       });
