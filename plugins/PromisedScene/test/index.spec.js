@@ -1359,6 +1359,53 @@ on top, pleasuring each other in unison, both of them squirming and squealing in
       expect(result.actors).to.contain("Abella Danger");
       expect(result.studio).to.equal("Blacked");
     });
+    it("Should not overwrite piped actors", async () => {
+      // I don't know the real actor, so use something that will still get a result in tpdb
+      const pipedActor = "TeppanVR";
+
+      const result = await runPlugin({
+        ...mockContext,
+        event: "sceneCreated",
+        scene: {},
+        $getStudio: async () => {},
+        $getMovies: async () => [],
+        $getActors: async () => [],
+        args: {
+          manualTouch: false,
+          sceneDuplicationCheck: true,
+          parseActor: true,
+          parseStudio: true,
+          parseDate: true,
+          usePipedInputInSearch: true,
+          alwaysUseSingleResult: true,
+          useTitleInSearch: true,
+          source_settings: {
+            actors: "./plugins/PromisedScene/test/fixtures/actorsPopulated.db",
+            scenes: "./plugins/PromisedScene/test/fixtures/scenesPopulated.db",
+            studios: "./plugins/PromisedScene/test/fixtures/studiosPopulated.db",
+          },
+        },
+        sceneName:
+          "Passionate Sex With A Woman That Has Decadent Overflowing Tits In Erotic Cosplay",
+        scenePath:
+          "Z:\\Keep\\test\\Passionate Sex With A Woman That Has Decadent Overflowing Tits In Erotic Cosplay",
+        // Piped data that should take precedence
+        data: {
+          actors: [pipedActor],
+          studio: "",
+          releaseDate: null,
+        },
+        testMode: {
+          correctImportInfo: "y",
+          testSiteUnavailable: false,
+          status: true,
+        },
+      });
+      expect(result).to.be.an("object");
+      expect(result.actors).to.be.a("Array");
+      // Even though tpdb has no actors for the scene, the piped actor should still be here
+      expect(result.actors).to.contain(pipedActor);
+    });
     it("Should use and match movie/actor(s) piped data (when they exist and are enabled through config)", async () => {
       const result = await runPlugin({
         ...mockContext,

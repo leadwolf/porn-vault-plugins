@@ -14,6 +14,8 @@ If no match is found, and `manualTouch` is enabled, you will be able to interact
 
 ### Changelog
 
+- **0.4.3 - server 0.27**
+- - Fix: would remove actors when actors were piped, but tpdb returned no actors
 - **0.4.2 - server 0.27**
 - - Fix: labels were not being returned
 
