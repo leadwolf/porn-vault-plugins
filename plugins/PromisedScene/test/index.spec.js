@@ -780,7 +780,7 @@ on top, pleasuring each other in unison, both of them squirming and squealing in
           questionAnswers: {
             enterInfoSearch: manualTouchChoices.SEARCH,
             enterMovie: "n",
-            enterOneActorName: "Kira Perez",
+            enterOneActorName: "Kira Perez 2020-07-18",
             enterSceneDate: "",
             enterSceneTitle: "Cock Is Her Duty",
             enterStudioName: "BANG BROS 18",
