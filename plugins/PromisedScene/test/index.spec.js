@@ -21,7 +21,7 @@ describe("PromisedScene", () => {
           ...mockContext,
           event: "fake event",
           scene: {},
-          $getStudio: async () => {},
+          $getStudio: async () => ({}),
           $getMovies: async () => [],
           $getActors: async () => [],
           args: {
