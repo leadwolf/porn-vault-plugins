@@ -1,3 +1,5 @@
+import $cheerio from "cheerio";
+
 import { ActorContext, ActorOutput } from "../../types/actor";
 
 interface MyContext extends ActorContext {
@@ -8,7 +10,7 @@ interface MyContext extends ActorContext {
 
 export default async function (ctx: MyContext): Promise<ActorOutput> {
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  const { args, $axios, $cheerio, $logger, $formatMessage, actorName, $createImage } = ctx;
+  const { args, $axios, $logger, $formatMessage, actorName, $createImage } = ctx;
 
   const name = actorName
     .replace(/#/g, "")
@@ -28,18 +30,20 @@ export default async function (ctx: MyContext): Promise<ActorOutput> {
     const html = (await $axios.get<string>(actorUrl)).data;
     const $ = $cheerio.load(html);
 
-    let avatar: string | undefined;
+    let thumbnail: string | undefined;
 
-    const firstImageResult = $(`a.fancy`).toArray()[0];
-    const avatarUrl = $(firstImageResult).attr("href");
+    const images = $(`a.fancy`).toArray();
 
-    if (avatarUrl) {
-      avatar = await $createImage(avatarUrl, `${actorName} (avatar)`);
+    const firstImageResult = images[0];
+    const thumbnailUrl = $(firstImageResult).attr("href");
+
+    if (thumbnailUrl) {
+      thumbnail = await $createImage(thumbnailUrl, `${actorName} (thumbnail)`);
     }
 
     let hero;
 
-    const secondImageResult = $(`a.fancy`).toArray()[1];
+    const secondImageResult = images[1];
     const heroUrl = $(secondImageResult).attr("href");
 
     if (heroUrl) {
@@ -65,7 +69,14 @@ export default async function (ctx: MyContext): Promise<ActorOutput> {
         .map((s) => s.trim());
     }
 
-    const result = { avatar, $ae_avatar: avatarUrl, hero, $ae_hero: heroUrl, aliases, description };
+    const result = {
+      thumbnail,
+      $ae_thumbnail: thumbnailUrl,
+      hero,
+      $ae_hero: heroUrl,
+      aliases,
+      description,
+    };
 
     if (args?.dry) {
       $logger.info(`Would have returned ${$formatMessage(result)}`);

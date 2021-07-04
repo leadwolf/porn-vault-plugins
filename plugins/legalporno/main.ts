@@ -1,10 +1,14 @@
-import { Context } from "../../types/plugin";
+import { applyMetadata, Plugin, Context } from "../../types/plugin";
+
+import $cheerio from "cheerio";
+
+import info from "./info.json";
 
 type MyContext = Context & { sceneName?: string };
 
 function extractShootId(originalTitle: string): string | null {
   const sceneIdMatch = originalTitle.match(
-    /(AB|AF|GP|SZ|IV|GIO|RS|TW|MA|FM|SAL|NR|AA|GL|BZ|FS|KS|OTS|NF|NT|AX|RV|CM|BTG|MS|YE|VK|SAA|SF|ALS|QE|SA|BRB|SHN|NRX|MSV|PF)\d+/i
+    /(AB|AF|GP|SZ|IV|GIO|RS|TW|MA|FM|SAL|NR|AA|GL|BZ|FS|KS|OTS|NF|NT|AX|RV|CM|BTG|MS|YE|VK|SAA|SF|ALS|QE|SA|BRB|SHN|NRX|MSV|PF|BIW)\d+/i
   ); // detect studio prefixes
   const shootId = sceneIdMatch ? sceneIdMatch[0] : null;
   return shootId;
@@ -48,7 +52,7 @@ async function getSceneUrl(ctx: MyContext, sceneId: string): Promise<string | nu
   return searchUrl;
 }
 
-module.exports = async (ctx: MyContext): Promise<any> => {
+const handler: Plugin<MyContext, any> = async (ctx) => {
   const { $logger, sceneName, event } = ctx;
 
   const args = ctx.args as Partial<{
@@ -94,7 +98,7 @@ module.exports = async (ctx: MyContext): Promise<any> => {
         // Scraping courtesy of traxxx (https://traxxx.me)
         const html = (await ctx.$axios.get<string>(sceneUrl)).data;
 
-        const $ = ctx.$cheerio.load(html, { normalizeWhitespace: true });
+        const $ = $cheerio.load(html, { normalizeWhitespace: true });
 
         if (!args.useSceneId) {
           const originalTitle = $("h1.watchpage-title").text().trim();
@@ -140,3 +144,11 @@ module.exports = async (ctx: MyContext): Promise<any> => {
 
   return {};
 };
+
+handler.requiredVersion = ">=0.27.0";
+
+applyMetadata(handler, info);
+
+module.exports = handler;
+
+export default handler;

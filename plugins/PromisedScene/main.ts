@@ -1,4 +1,6 @@
+import { applyMetadata, Plugin } from "../../types/plugin";
 import { SceneOutput } from "../../types/scene";
+
 import { Api } from "./api";
 import { parseSceneActor, parseSceneStudio, parseSceneTimestamp } from "./parse";
 import { MyContext, SceneResult } from "./types";
@@ -8,14 +10,18 @@ import {
   dateToTimestamp,
   isPositiveAnswer,
   manualTouchChoices,
+  matchSceneResultToPipedData,
   matchSceneResultToSearch,
   normalizeSceneResultData,
   timestampToString,
 } from "./util";
 
-module.exports = async (ctx: MyContext): Promise<SceneOutput> => {
+import info from "./info.json";
+
+const handler: Plugin<MyContext, SceneOutput> = async (ctx) => {
   const {
     event,
+    scene,
     scenePath,
     sceneName,
     $throw,
@@ -25,6 +31,7 @@ module.exports = async (ctx: MyContext): Promise<SceneOutput> => {
     args,
     $inquirer,
     $createImage,
+    data,
   } = ctx;
 
   /**
@@ -38,6 +45,10 @@ module.exports = async (ctx: MyContext): Promise<SceneOutput> => {
   }
 
   // Checking all of the arguments are set in the plugin
+
+  if (!Object.hasOwnProperty.call(args, "usePipedInputInSearch")) {
+    args.usePipedInputInSearch = false;
+  }
 
   const envApiKey = process.env.TPDB_API_KEY;
   if (!Object.hasOwnProperty.call(args, "apiKey")) {
@@ -84,18 +95,42 @@ module.exports = async (ctx: MyContext): Promise<SceneOutput> => {
 
   $logger.info(`STARTING to analyze scene: ${JSON.stringify(scenePath)}`);
 
-  const parsedDbActor = parseSceneActor(ctx);
-  const parsedDbStudio = parseSceneStudio(ctx);
-  const parsedTimestamp = parseSceneTimestamp(ctx);
-
-  // After everything has completed parsing, I run a function that will perform all of the lookups against TPDB
-
-  let searchTitle: string | undefined = sceneName;
-  let searchActors = parsedDbActor ? [parsedDbActor] : [];
-  let searchStudio = parsedDbStudio ?? undefined;
-  let searchTimestamp: number | undefined = parsedTimestamp ?? undefined;
+  let searchTitle: string | undefined;
+  let searchActors: string[] = [];
+  let searchStudio: string | undefined;
+  let searchTimestamp: number | undefined;
   let userMovie: string | undefined;
   let extra: string | undefined;
+
+  if (args.usePipedInputInSearch && Object.keys(data).length) {
+    searchTitle = data.name ?? data.movie;
+    searchActors = data.actors ?? [];
+    searchStudio = data.studio;
+    searchTimestamp = data.releaseDate;
+    userMovie = data.movie;
+    $logger.verbose(
+      `Piped data from the previous plugin take precedence for the search: ${$formatMessage({
+        searchTitle: searchTitle,
+        searchActors: searchActors,
+        searchStudio: searchStudio,
+        searchTimestamp: ctx.$moment(searchTimestamp).format("YYYY-MM-DD"),
+        userMovie: userMovie,
+      })}`
+    );
+  }
+
+  // Assign or parse only it the value is still undefined (there were no piped data for it)
+  searchTitle ??= sceneName;
+  searchTimestamp ??= scene.releaseDate ?? parseSceneTimestamp(ctx) ?? undefined;
+  searchStudio ??= (await ctx.$getStudio())?.name ?? parseSceneStudio(ctx);
+  if (!searchActors.length) {
+    searchActors = (await ctx.$getActors())?.map((a) => a.name) ?? [];
+    if (!searchActors.length) {
+      const parsedDbActor = parseSceneActor(ctx);
+      searchActors = parsedDbActor ? [parsedDbActor] : [];
+    }
+  }
+  userMovie ??= (await ctx.$getMovies())?.[0]?.name;
 
   const gotResultOrExit = false;
   do {
@@ -504,10 +539,11 @@ module.exports = async (ctx: MyContext): Promise<SceneOutput> => {
     timestamp: number;
     extra: string;
   }>): Promise<SceneOutput | null> {
-    async function mergeSearchResult(rawScene: SceneResult.SceneData): Promise<SceneOutput> {
+    async function mergeSearchResult(rawScene: SceneResult.SlimSceneData): Promise<SceneOutput> {
       checkSceneExistsInDb(ctx, rawScene.title);
 
-      const sceneData = normalizeSceneResultData(rawScene);
+      const fullSceneRes = await tpdbApi.getSceneById(rawScene.id);
+      const sceneData = normalizeSceneResultData(fullSceneRes.data.data);
 
       if (
         (!sceneData.actors || !sceneData.actors.length) &&
@@ -546,7 +582,7 @@ module.exports = async (ctx: MyContext): Promise<SceneOutput> => {
       return null;
     }
 
-    let sceneList: SceneResult.SceneData[] = [];
+    let sceneList: SceneResult.SlimSceneData[] = [];
 
     try {
       $logger.verbose(`Running TPDB Primary Search on: ${JSON.stringify(initialQuery)}`);
@@ -570,7 +606,14 @@ module.exports = async (ctx: MyContext): Promise<SceneOutput> => {
       return null;
     }
 
-    const matchedScene = matchSceneResultToSearch(ctx, sceneList, searchActors, searchStudio);
+    let matchedScene: SceneResult.SlimSceneData | null;
+    if (args.usePipedInputInSearch && Object.keys(data).length) {
+      // Match results against piped data
+      matchedScene = matchSceneResultToPipedData(ctx, sceneList);
+    } else {
+      // Normal filename based result matching
+      matchedScene = matchSceneResultToSearch(ctx, sceneList, searchActors, searchStudio);
+    }
 
     if (matchedScene) {
       return mergeSearchResult(matchedScene);
@@ -615,7 +658,7 @@ module.exports = async (ctx: MyContext): Promise<SceneOutput> => {
     });
 
     const findResultIndex = possibleTitles.indexOf(multipleSitesAnswer.trim());
-    const userSelectedScene: SceneResult.SceneData | undefined = sceneList[findResultIndex];
+    const userSelectedScene: SceneResult.SlimSceneData | undefined = sceneList[findResultIndex];
 
     if (!userSelectedScene) {
       $logger.info("User did not select a scene, exiting scene selection");
@@ -625,3 +668,11 @@ module.exports = async (ctx: MyContext): Promise<SceneOutput> => {
     return mergeSearchResult(userSelectedScene);
   }
 };
+
+handler.requiredVersion = ">=0.27.0";
+
+applyMetadata(handler, info);
+
+module.exports = handler;
+
+export default handler;

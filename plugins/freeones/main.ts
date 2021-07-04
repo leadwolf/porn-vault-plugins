@@ -1,5 +1,9 @@
+import { applyMetadata, Plugin, Context } from "../../types/plugin";
 import { ActorContext, ActorOutput } from "../../types/actor";
-import { Context } from "../../types/plugin";
+
+import * as $cheerio from "cheerio";
+
+import info from "./info.json";
 
 interface MyContext extends ActorContext {
   args: {
@@ -46,7 +50,7 @@ async function search(
 
 async function getFirstSearchResult(ctx: MyContext, query: string): Promise<cheerio.Cheerio> {
   const searchHtml = await search(ctx, query, ctx.args.searchResultsSort || "relevance");
-  const $ = ctx.$cheerio.load(searchHtml);
+  const $ = $cheerio.load(searchHtml);
   const el = $(".grid-item.teaser-subject>a");
   return el;
 }
@@ -79,18 +83,8 @@ class Measurements {
   }
 }
 
-module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
-  const {
-    $createImage,
-    args,
-    $axios,
-    $moment,
-    $cheerio,
-    $throw,
-    $logger,
-    $formatMessage,
-    actorName,
-  } = ctx;
+const handler: Plugin<MyContext, ActorOutput> = async (ctx) => {
+  const { $createImage, args, $axios, $moment, $throw, $logger, $formatMessage, actorName } = ctx;
   if (!actorName) {
     $throw("Uh oh. You shouldn't use the plugin for this type of event");
   }
@@ -563,3 +557,11 @@ module.exports = async (ctx: MyContext): Promise<ActorOutput> => {
   }
   return data;
 };
+
+handler.requiredVersion = ">=0.27.0";
+
+applyMetadata(handler, info);
+
+module.exports = handler;
+
+export default handler;
