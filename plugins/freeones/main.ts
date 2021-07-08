@@ -148,6 +148,10 @@ const handler: Plugin<MyContext, ActorOutput> = async (ctx) => {
   }
 
   const href = firstResult.attr("href")?.replace("/feed", "");
+  if (!href) {
+    $throw(new Error("Could not get link of first result"));
+    return {}; // return for type compatibility
+  }
 
   let html: string;
   try {
@@ -490,6 +494,35 @@ const handler: Plugin<MyContext, ActorOutput> = async (ctx) => {
     return { piercings: piercingText };
   }
 
+  function getWebsites(): Partial<{ instagram: string; twitter: string; url: string }> {
+    if (["twitter", "instagram", "url"].every((site) => isBlacklisted(site))) {
+      return {};
+    }
+    $logger.verbose("Getting website(s)...");
+
+    const instagram = !isBlacklisted("instagram")
+      ? $(`[href*="instagram.com"]`)?.attr("href") ?? undefined
+      : undefined;
+    const twitter = !isBlacklisted("instagram")
+      ? $(`[href*="twitter.com"]`)?.attr("href") ?? undefined
+      : undefined;
+    const url = !isBlacklisted("instagram")
+      ? $(`[rel="alternate"][hreflang="x-default"]`)?.attr("href") ?? undefined
+      : undefined;
+
+    const res: Partial<{ instagram: string; twitter: string; url: string }> = {};
+    if (instagram) {
+      res.instagram = instagram;
+    }
+    if (twitter) {
+      res.twitter = twitter;
+    }
+    if (url) {
+      res.url = url;
+    }
+    return res;
+  }
+
   const custom = {
     ...scrapeText<{ ["hair color"]: string }>(
       "hair color",
@@ -515,6 +548,7 @@ const handler: Plugin<MyContext, ActorOutput> = async (ctx) => {
     ...getTattoos(),
     ...getCareer(),
     ...getPiercings(),
+    ...getWebsites(),
   };
 
   if (custom.tattoos === "Unknown") {
